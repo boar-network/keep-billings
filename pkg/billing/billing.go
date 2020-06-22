@@ -15,26 +15,39 @@ type Customer struct {
 type Report struct {
 	Customer *Customer
 
-	NumberOfGroups           int
-	NumberOfGroupMemberships int
+	GroupsCount            int
+	GroupsMembershipsCount int
+	KeepsCount             int
+	KeepsMembershipsCount  int
 }
 
 type DataSource interface {
-	NumberOfGroups() (int64, error)
+	GroupsCount() (int64, error)
 	GroupPublicKey(index int64) ([]byte, error)
 	GroupDistinctMembers(groupPublicKey []byte) (map[string]bool, error)
+
+	KeepsCount() (int64, error)
+	KeepAddress(index int64) (string, error)
+	KeepDistinctMembers(address string) (map[string]bool, error)
 }
 
 type ReportGenerator struct {
 	dataSource DataSource
 
 	groups []*group
+	keeps  []*keep
 }
 
 type group struct {
 	index     int
 	publicKey []byte
 	members   map[string]bool
+}
+
+type keep struct {
+	index   int
+	address string
+	members map[string]bool
 }
 
 func NewReportGenerator(dataSource DataSource) (*ReportGenerator, error) {
@@ -58,21 +71,24 @@ func (rg *ReportGenerator) fetchCommonData() error {
 		return err
 	}
 
-	// TODO: fetch keeps data
+	rg.keeps, err = rg.fetchKeepsData()
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
 
 func (rg *ReportGenerator) fetchGroupsData() ([]*group, error) {
-	numberOfGroups, err := rg.dataSource.NumberOfGroups()
+	groupsCount, err := rg.dataSource.GroupsCount()
 	if err != nil {
 		return nil, fmt.Errorf(
-			"could not get number of groups: [%v]",
+			"could not get groups count: [%v]",
 			err,
 		)
 	}
 
-	groups := make([]*group, numberOfGroups)
+	groups := make([]*group, groupsCount)
 	for index := range groups {
 		publicKey, err := rg.dataSource.GroupPublicKey(int64(index))
 		if err != nil {
@@ -102,19 +118,72 @@ func (rg *ReportGenerator) fetchGroupsData() ([]*group, error) {
 	return groups, nil
 }
 
+func (rg *ReportGenerator) fetchKeepsData() ([]*keep, error) {
+	keepsCount, err := rg.dataSource.KeepsCount()
+	if err != nil {
+		return nil, fmt.Errorf(
+			"could not get keeps count: [%v]",
+			err,
+		)
+	}
+
+	keeps := make([]*keep, keepsCount)
+	for index := range keeps {
+		address, err := rg.dataSource.KeepAddress(int64(index))
+		if err != nil {
+			return nil, fmt.Errorf(
+				"could not get address of keep with index [%v]: [%v]",
+				index,
+				err,
+			)
+		}
+
+		members, err := rg.dataSource.KeepDistinctMembers(address)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"could not get members of keep with index [%v]: [%v]",
+				index,
+				err,
+			)
+		}
+
+		keeps[index] = &keep{
+			index:   index,
+			address: address,
+			members: members,
+		}
+	}
+
+	return keeps, nil
+}
+
 func (rg *ReportGenerator) Generate(customer *Customer) (*Report, error) {
 	return &Report{
-		Customer:                 customer,
-		NumberOfGroups:           len(rg.groups),
-		NumberOfGroupMemberships: rg.countGroupMemberships(customer.Operator),
+		Customer:               customer,
+		GroupsCount:            len(rg.groups),
+		GroupsMembershipsCount: rg.countGroupsMemberships(customer.Operator),
+		KeepsCount:             len(rg.keeps),
+		KeepsMembershipsCount:  rg.countKeepsMemberships(customer.Operator),
 	}, nil
 }
 
-func (rg *ReportGenerator) countGroupMemberships(operator string) int {
+func (rg *ReportGenerator) countGroupsMemberships(operator string) int {
 	count := 0
 
 	for _, group := range rg.groups {
 		if _, exists := group.members[strings.ToLower(operator)]; exists {
+			count++
+		}
+	}
+
+	return count
+}
+
+func (rg *ReportGenerator) countKeepsMemberships(operator string) int {
+	count := 0
+
+	for _, keep := range rg.keeps {
+		if _, exists := keep.members[strings.ToLower(operator)]; exists {
 			count++
 		}
 	}

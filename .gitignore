@@ -10,6 +10,8 @@
 ### Miscellaneous ###
 reports
 generated-billings
+gen
+temporary
 
 ### Config files ###
 configs/*

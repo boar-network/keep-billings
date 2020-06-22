@@ -19,6 +19,7 @@ type Billings struct {
 type Ethereum struct {
 	URL                      string
 	KeepRandomBeaconOperator string
+	BondedECDSAKeepFactory   string
 }
 
 func ReadConfig(filePath string) (*Config, error) {
