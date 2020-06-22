@@ -1,6 +1,50 @@
 <html>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        table, tr, td {
+            border: 1px solid gray;
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+        }
+    </style>
+
     <body>
-        <h1 style="text-align: center">Billing for {{ .Customer }}</h1>
-        <h3>You have completed {{ .Transactions }} transactions</h3>
+        <h1 style="text-align: center">Billing for {{ .Customer.Name }}</h1>
+        <h2>Customer</h2>
+        <p>General data about the customer:</p>
+        <table>
+            <tr>
+                <td>Name</td>
+                <td>{{ .Customer.Name }}</td>
+            </tr>
+            <tr>
+                <td>Operator address</td>
+                <td>{{ .Customer.Operator }}</td>
+            </tr>
+            <tr>
+                <td>Beneficiary address</td>
+                <td>{{ .Customer.Beneficiary }}</td>
+            </tr>
+        </table>
+
+        <h2>Network</h2>
+        <p>General data about the network:</p>
+        <table>
+            <tr>
+                <td>Number of groups</td>
+                <td>{{ .NumberOfGroups }}</td>
+            </tr>
+            <tr>
+                <td>Number of groups you participate</td>
+                <td>{{ .NumberOfGroupMemberships }}</td>
+            </tr>
+        </table>
     </body>
 </html>

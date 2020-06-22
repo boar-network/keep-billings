@@ -70,11 +70,16 @@ func GenerateBillings(c *cli.Context) error {
 		return err
 	}
 
+	reportGenerator, err := billing.NewReportGenerator(ethereumClient)
+	if err != nil {
+		return err
+	}
+
 	// TODO: trigger each iteration asynchronously.
 	for _, customer := range customers {
 		logger.Infof("generating billing for [%v]", customer.Name)
 
-		report, err := billing.GenerateReport(&customer, ethereumClient)
+		report, err := reportGenerator.Generate(&customer)
 		if err != nil {
 			logger.Errorf(
 				"could not generate billing report for customer [%v]: [%v]",

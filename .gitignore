@@ -11,3 +11,7 @@
 reports
 generated-billings
 
+### Config files ###
+configs/*
+!configs/*.SAMPLE
+
