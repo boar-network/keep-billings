@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/boar-network/reports/pkg/billing"
+	"github.com/boar-network/reports/pkg/chain"
 	"github.com/boar-network/reports/pkg/exporter"
 	"github.com/ipfs/go-log"
 	"github.com/urfave/cli"
@@ -15,9 +16,7 @@ import (
 var logger = log.Logger("reports-cmd")
 
 const (
-	defaultCustomersJson = "./configs/customers.json"
-	defaultTargetDir     = "./generated-billings"
-	defaultTemplate      = "./templates/billing_template.html"
+	defaultConfigFile = "./configs/config.toml"
 )
 
 var BillingsCommand = cli.Command{
@@ -26,38 +25,24 @@ var BillingsCommand = cli.Command{
 	Usage:  "Generates billing reports for provided customers",
 	Flags: []cli.Flag{
 		&cli.StringFlag{
-			Name:  "customers-json,cj",
-			Value: defaultCustomersJson,
-			Usage: "JSON file containing customers data",
-		},
-		&cli.StringFlag{
-			Name:  "target-dir,td",
-			Value: defaultTargetDir,
-			Usage: "Target directory for generated reports",
-		},
-		&cli.StringFlag{
-			Name:  "template,t",
-			Value: defaultTemplate,
-			Usage: "Template used for generated reports",
+			Name:  "config,c",
+			Value: defaultConfigFile,
+			Usage: "Path to the TOML config file",
 		},
 	},
 }
 
 func GenerateBillings(c *cli.Context) error {
-	customersJson := c.String("customers-json")
-	targetDir := c.String("target-dir")
-	template := c.String("template")
+	configPath := c.String("config")
 
-	logger.Infof(
-		"generating billings for customers [%v] "+
-			"with target dir [%v] "+
-			"using template [%v]",
-		customersJson,
-		targetDir,
-		template,
-	)
+	logger.Infof("generating billings using config [%v]", configPath)
 
-	customersJsonBytes, err := ioutil.ReadFile(customersJson)
+	config, err := ReadConfig(configPath)
+	if err != nil {
+		return err
+	}
+
+	customersJsonBytes, err := ioutil.ReadFile(config.Billings.CustomersFile)
 	if err != nil {
 		return err
 	}
@@ -68,11 +53,19 @@ func GenerateBillings(c *cli.Context) error {
 		return err
 	}
 
-	if _, err := os.Stat(targetDir); os.IsNotExist(err) {
-		_ = os.Mkdir(targetDir, 0777)
+	if _, err := os.Stat(config.Billings.TargetDirectory); os.IsNotExist(err) {
+		_ = os.Mkdir(config.Billings.TargetDirectory, 0777)
 	}
 
-	pdfExporter, err := exporter.NewPdfExporter(template)
+	pdfExporter, err := exporter.NewPdfExporter(config.Billings.TemplateFile)
+	if err != nil {
+		return err
+	}
+
+	ethereumClient, err := chain.NewEthereumClient(
+		config.Ethereum.URL,
+		config.Ethereum.KeepRandomBeaconOperator,
+	)
 	if err != nil {
 		return err
 	}
@@ -81,7 +74,7 @@ func GenerateBillings(c *cli.Context) error {
 	for _, customer := range customers {
 		logger.Infof("generating billing for [%v]", customer.Name)
 
-		report, err := billing.GenerateReport(&customer)
+		report, err := billing.GenerateReport(&customer, ethereumClient)
 		if err != nil {
 			logger.Errorf(
 				"could not generate billing report for customer [%v]: [%v]",
@@ -102,11 +95,12 @@ func GenerateBillings(c *cli.Context) error {
 		}
 
 		fileName := fmt.Sprintf(
-			"%v_Billing.pdf",
+			"%v/%v_Billing.pdf",
+			config.Billings.TargetDirectory,
 			strings.ReplaceAll(customer.Name, " ", "_"),
 		)
 
-		err = ioutil.WriteFile(targetDir+"/"+fileName, fileBytes, 0666)
+		err = ioutil.WriteFile(fileName, fileBytes, 0666)
 		if err != nil {
 			logger.Errorf(
 				"could not write billing pdf file for customer [%v]: [%v]",

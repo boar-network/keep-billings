@@ -12,7 +12,11 @@ type Report struct {
 	Transactions int
 }
 
-func GenerateReport(customer *Customer) (*Report, error) {
+type DataSource interface {
+	NumberOfGroups() (int64, error)
+}
+
+func GenerateReport(customer *Customer, data DataSource) (*Report, error) {
 	// TODO: implementation
 	report := &Report{
 		Customer:     customer.Name,
