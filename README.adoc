@@ -27,13 +27,17 @@ A binary named `reports` should be created.
 == Configuration
 
 To generate a report, you should provide a TOML file with basic
-configuration properties. An example of such config is defined in
-`./configs/config.toml.SAMPLE`.
+configuration properties. An example of such config is defined in:
+```
+./configs/config.toml.SAMPLE
+```
 
 Worth noting, the config TOML contains the `CustomersFile`
 property which should point to a file containing the JSON with customer's
-input data. You can find an example of this file in
-`./configs/customers.json.SAMPLE`
+input data. You can find an example of this file in:
+```
+./configs/customers.json.SAMPLE
+```
 
 == Usage
 
