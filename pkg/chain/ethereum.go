@@ -6,7 +6,6 @@ import (
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"math/big"
-	"strings"
 )
 
 type EthereumClient struct {
@@ -53,8 +52,17 @@ func (ec *EthereumClient) GetBalance(address string) (*big.Int, error) {
 	return big.NewInt(0), nil
 }
 
-func (ec *EthereumClient) GroupsCount() (int64, error) {
+func (ec *EthereumClient) ActiveGroupsCount() (int64, error) {
 	result, err := ec.operatorContract.NumberOfGroups(nil)
+	if err != nil {
+		return 0, err
+	}
+
+	return result.Int64(), nil
+}
+
+func (ec *EthereumClient) FirstActiveGroupIndex() (int64, error) {
+	result, err := ec.operatorContract.GetFirstActiveGroupIndex(nil)
 	if err != nil {
 		return 0, err
 	}
@@ -66,20 +74,20 @@ func (ec *EthereumClient) GroupPublicKey(index int64) ([]byte, error) {
 	return ec.operatorContract.GetGroupPublicKey(nil, big.NewInt(index))
 }
 
-func (ec *EthereumClient) GroupDistinctMembers(
+func (ec *EthereumClient) GroupMembers(
 	groupPublicKey []byte,
-) (map[string]bool, error) {
+) (map[int]string, error) {
 	addresses, err := ec.operatorContract.GetGroupMembers(nil, groupPublicKey)
 	if err != nil {
 		return nil, err
 	}
 
-	hexes := make(map[string]bool)
-	for _, address := range addresses {
-		hexes[strings.ToLower(address.Hex())] = true
+	members := make(map[int]string)
+	for i, address := range addresses {
+		members[i+1] = address.Hex()
 	}
 
-	return hexes, err
+	return members, err
 }
 
 func (ec *EthereumClient) KeepsCount() (int64, error) {
@@ -97,7 +105,7 @@ func (ec *EthereumClient) KeepAddress(index int64) (string, error) {
 		return "", err
 	}
 
-	return strings.ToLower(address.Hex()), err
+	return address.Hex(), err
 }
 
 func (ec *EthereumClient) KeepDistinctMembers(
@@ -115,7 +123,7 @@ func (ec *EthereumClient) KeepDistinctMembers(
 
 	hexes := make(map[string]bool)
 	for _, address := range addresses {
-		hexes[strings.ToLower(address.Hex())] = true
+		hexes[address.Hex()] = true
 	}
 
 	return hexes, err
