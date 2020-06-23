@@ -1,14 +1,24 @@
-[
-  {
-    "name": "Customer A",
-    "operator": "0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-    "beneficiary": "0xBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
-    "customerSharePercentage": 50
-  },
-  {
-    "name": "Customer B",
-    "operator": "0xCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC",
-    "beneficiary": "0xDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD",
-    "customerSharePercentage": 75
-  }
-]
+{
+  "beacon": [
+    {
+      "name": "Beacon Customer A",
+      "operator": "0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+      "beneficiary": "0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+      "customerSharePercentage": 50
+    },
+    {
+      "name": "Beacon Customer B",
+      "operator": "0xBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+      "beneficiary": "0xBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+      "customerSharePercentage": 75
+    }
+  ],
+  "ecdsa": [
+    {
+      "name": "ECDSA Customer A",
+      "operator": "0xCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC",
+      "beneficiary": "0xCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC",
+      "customerSharePercentage": 90
+    }
+  ]
+}

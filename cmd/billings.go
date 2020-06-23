@@ -32,6 +32,11 @@ var BillingsCommand = cli.Command{
 	},
 }
 
+type Customers struct {
+	Beacon []billing.Customer
+	Ecdsa  []billing.Customer
+}
+
 func GenerateBillings(c *cli.Context) error {
 	configPath := c.String("config")
 
@@ -42,25 +47,12 @@ func GenerateBillings(c *cli.Context) error {
 		return err
 	}
 
-	customersJsonBytes, err := ioutil.ReadFile(config.Billings.CustomersFile)
+	customers, err := parseCustomers(config)
 	if err != nil {
 		return err
 	}
 
-	var customers []billing.Customer
-
-	if err := json.Unmarshal(customersJsonBytes, &customers); err != nil {
-		return err
-	}
-
-	if _, err := os.Stat(config.Billings.TargetDirectory); os.IsNotExist(err) {
-		_ = os.Mkdir(config.Billings.TargetDirectory, 0777)
-	}
-
-	pdfExporter, err := exporter.NewPdfExporter(config.Billings.TemplateFile)
-	if err != nil {
-		return err
-	}
+	createTargetDirectory(config)
 
 	ethereumClient, err := chain.NewEthereumClient(
 		config.Ethereum.URL,
@@ -71,15 +63,81 @@ func GenerateBillings(c *cli.Context) error {
 		return err
 	}
 
-	reportGenerator, err := billing.NewReportGenerator(ethereumClient)
+	beaconReportGenerator, err := billing.NewBeaconReportGenerator(ethereumClient)
 	if err != nil {
 		return err
 	}
 
+	beaconPdfExporter, err := exporter.NewPdfExporter(
+		config.Billings.BeaconTemplateFile,
+	)
+	if err != nil {
+		return err
+	}
+
+	generateBillings(
+		customers.Beacon,
+		func(customer *billing.Customer) (interface{}, error) {
+			return beaconReportGenerator.Generate(customer)
+		},
+		beaconPdfExporter,
+		config.Billings.TargetDirectory+"/%v_Beacon_Billing.pdf",
+	)
+
+	ecdsaReportGenerator, err := billing.NewEcdsaReportGenerator(ethereumClient)
+	if err != nil {
+		return err
+	}
+
+	ecdsaPdfExporter, err := exporter.NewPdfExporter(
+		config.Billings.EcdsaTemplateFile,
+	)
+	if err != nil {
+		return err
+	}
+
+	generateBillings(
+		customers.Ecdsa,
+		func(customer *billing.Customer) (interface{}, error) {
+			return ecdsaReportGenerator.Generate(customer)
+		},
+		ecdsaPdfExporter,
+		config.Billings.TargetDirectory+"/%v_Ecdsa_Billing.pdf",
+	)
+
+	return nil
+}
+
+func parseCustomers(config *Config) (*Customers, error) {
+	customersJsonBytes, err := ioutil.ReadFile(config.Billings.CustomersFile)
+	if err != nil {
+		return nil, err
+	}
+
+	var customers Customers
+	if err := json.Unmarshal(customersJsonBytes, &customers); err != nil {
+		return nil, err
+	}
+
+	return &customers, nil
+}
+
+func createTargetDirectory(config *Config) {
+	if _, err := os.Stat(config.Billings.TargetDirectory); os.IsNotExist(err) {
+		_ = os.Mkdir(config.Billings.TargetDirectory, 0777)
+	}
+}
+
+func generateBillings(
+	customers []billing.Customer,
+	generate func(customer *billing.Customer) (interface{}, error),
+	pdfExporter *exporter.PdfExporter,
+	fileNameFormat string,
+) {
 	for _, customer := range customers {
 		logger.Infof("generating billing for [%v]", customer.Name)
 
-		report, err := reportGenerator.Generate(&customer)
+		report, err := generate(&customer)
 		if err != nil {
 			logger.Errorf(
 				"could not generate billing report for customer [%v]: [%v]",
@@ -100,8 +158,7 @@ func GenerateBillings(c *cli.Context) error {
 		}
 
 		fileName := fmt.Sprintf(
-			"%v/%v_Billing.pdf",
-			config.Billings.TargetDirectory,
+			fileNameFormat,
 			strings.ReplaceAll(customer.Name, " ", "_"),
 		)
 
@@ -117,6 +174,4 @@ func GenerateBillings(c *cli.Context) error {
 
 		logger.Infof("completed billing for [%v]", customer.Name)
 	}
-
-	return nil
 }

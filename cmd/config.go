@@ -11,9 +11,10 @@ type Config struct {
 }
 
 type Billings struct {
-	CustomersFile   string
-	TargetDirectory string
-	TemplateFile    string
+	CustomersFile      string
+	TargetDirectory    string
+	BeaconTemplateFile string
+	EcdsaTemplateFile  string
 }
 
 type Ethereum struct {

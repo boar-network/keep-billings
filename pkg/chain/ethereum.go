@@ -48,6 +48,11 @@ func NewEthereumClient(
 	}, nil
 }
 
+func (ec *EthereumClient) GetBalance(address string) (*big.Int, error) {
+	// TODO: implementation.
+	return big.NewInt(0), nil
+}
+
 func (ec *EthereumClient) GroupsCount() (int64, error) {
 	result, err := ec.operatorContract.NumberOfGroups(nil)
 	if err != nil {

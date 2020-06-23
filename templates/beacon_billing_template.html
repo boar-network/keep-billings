@@ -16,9 +16,8 @@
     </style>
 
     <body>
-        <h1 style="text-align: center">Billing for {{ .Customer.Name }}</h1>
+        <h1 style="text-align: center">Random Beacon Billing - {{ .Customer.Name }}</h1>
         <h2>Customer</h2>
-        <p>General data about the customer:</p>
         <table>
             <tr>
                 <td>Name</td>
@@ -34,24 +33,15 @@
             </tr>
         </table>
 
-        <h2>Network</h2>
-        <p>General data about the network:</p>
+        <h2>Groups</h2>
         <table>
             <tr>
-                <td>Groups count</td>
+                <td>The number of currently active beacon groups</td>
                 <td>{{ .GroupsCount }}</td>
             </tr>
             <tr>
-                <td>Groups memberships count</td>
+                <td>The number of your members in currently active beacon groups</td>
                 <td>{{ .GroupsMembershipsCount }}</td>
-            </tr>
-            <tr>
-                <td>Keeps count</td>
-                <td>{{ .KeepsCount }}</td>
-            </tr>
-            <tr>
-                <td>Keeps memberships count</td>
-                <td>{{ .KeepsMembershipsCount }}</td>
             </tr>
         </table>
     </body>

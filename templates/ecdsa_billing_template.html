@@ -1,0 +1,48 @@
+<html>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        table, tr, td {
+            border: 1px solid gray;
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+        }
+    </style>
+
+    <body>
+        <h1 style="text-align: center">ECDSA Billing - {{ .Customer.Name }}</h1>
+        <h2>Customer</h2>
+        <table>
+            <tr>
+                <td>Name</td>
+                <td>{{ .Customer.Name }}</td>
+            </tr>
+            <tr>
+                <td>Operator address</td>
+                <td>{{ .Customer.Operator }}</td>
+            </tr>
+            <tr>
+                <td>Beneficiary address</td>
+                <td>{{ .Customer.Beneficiary }}</td>
+            </tr>
+        </table>
+
+        <h2>Keeps</h2>
+        <table>
+            <tr>
+                <td>The number of currently active keeps</td>
+                <td>{{ .KeepsCount }}</td>
+            </tr>
+            <tr>
+                <td>The number of your members in currently active keeps</td>
+                <td>{{ .KeepsMembershipsCount }}</td>
+            </tr>
+        </table>
+    </body>
+</html>

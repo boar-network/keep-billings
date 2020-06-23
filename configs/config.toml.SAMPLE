@@ -1,7 +1,8 @@
 [Billings]
     CustomersFile = "./configs/customers.json"
     TargetDirectory = "./generated-billings"
-    TemplateFile = "./templates/billing_template.html"
+    BeaconTemplateFile = "./templates/beacon_billing_template.html"
+    EcdsaTemplateFile = "./templates/ecdsa_billing_template.html"
 
 [Ethereum]
     URL = "http://127.0.0.1:8545"
