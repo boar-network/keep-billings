@@ -8,22 +8,21 @@ import (
 type EcdsaReport struct {
 	*Report
 
-	KeepsCount            int
-	KeepsMembershipsCount int
+	ActiveKeepsCount        int
+	ActiveKeepsMembersCount int
 }
 
 type EcdsaDataSource interface {
 	DataSource
 
-	KeepsCount() (int64, error)
-	KeepAddress(index int64) (string, error)
-	KeepDistinctMembers(address string) (map[string]bool, error)
+	ActiveKeeps() (map[int64]string, error)
+	KeepMembers(address string) ([]string, error)
 }
 
 type keep struct {
-	index   int
+	index   int64
 	address string
-	members map[string]bool
+	members []string
 }
 
 type EcdsaReportGenerator struct {
@@ -59,39 +58,31 @@ func (erg *EcdsaReportGenerator) fetchCommonData() error {
 }
 
 func (erg *EcdsaReportGenerator) fetchKeepsData() ([]*keep, error) {
-	keepsCount, err := erg.dataSource.KeepsCount()
+	keeps := make([]*keep, 0)
+
+	activeKeeps, err := erg.dataSource.ActiveKeeps()
 	if err != nil {
-		return nil, fmt.Errorf(
-			"could not get keeps count: [%v]",
-			err,
-		)
+		return nil, fmt.Errorf("could not get active keeps: [%v]", err)
 	}
 
-	keeps := make([]*keep, keepsCount)
-	for index := range keeps {
-		address, err := erg.dataSource.KeepAddress(int64(index))
+	for index, address := range activeKeeps {
+		members, err := erg.dataSource.KeepMembers(address)
 		if err != nil {
 			return nil, fmt.Errorf(
-				"could not get address of keep with index [%v]: [%v]",
-				index,
+				"could not get members of keep [%v]: [%v]",
+				address,
 				err,
 			)
 		}
 
-		members, err := erg.dataSource.KeepDistinctMembers(address)
-		if err != nil {
-			return nil, fmt.Errorf(
-				"could not get members of keep with index [%v]: [%v]",
-				index,
-				err,
-			)
-		}
-
-		keeps[index] = &keep{
-			index:   index,
-			address: address,
-			members: members,
-		}
+		keeps = append(
+			keeps,
+			&keep{
+				index:   index,
+				address: address,
+				members: members,
+			},
+		)
 	}
 
 	return keeps, nil
@@ -101,18 +92,22 @@ func (erg *EcdsaReportGenerator) Generate(
 	customer *Customer,
 ) (*EcdsaReport, error) {
 	return &EcdsaReport{
-		Report:                &Report{customer},
-		KeepsCount:            len(erg.keeps),
-		KeepsMembershipsCount: erg.countKeepsMemberships(customer.Operator),
+		Report:                  &Report{customer},
+		ActiveKeepsCount:        len(erg.keeps),
+		ActiveKeepsMembersCount: erg.countActiveKeepsMembers(customer.Operator),
 	}, nil
 }
 
-func (erg *EcdsaReportGenerator) countKeepsMemberships(operator string) int {
+func (erg *EcdsaReportGenerator) countActiveKeepsMembers(operator string) int {
 	count := 0
 
+	operatorAddress := strings.ToLower(operator)
+
 	for _, keep := range erg.keeps {
-		if _, exists := keep.members[strings.ToLower(operator)]; exists {
-			count++
+		for _, memberAddress := range keep.members {
+			if operatorAddress == strings.ToLower(memberAddress) {
+				count++
+			}
 		}
 	}
 

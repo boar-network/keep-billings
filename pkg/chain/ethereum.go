@@ -90,27 +90,44 @@ func (ec *EthereumClient) GroupMembers(
 	return members, err
 }
 
-func (ec *EthereumClient) KeepsCount() (int64, error) {
-	result, err := ec.keepFactoryContract.GetKeepCount(nil)
+func (ec *EthereumClient) ActiveKeeps() (map[int64]string, error) {
+	keepCount, err := ec.keepFactoryContract.GetKeepCount(nil)
 	if err != nil {
-		return 0, err
+		return nil, err
 	}
 
-	return result.Int64(), nil
-}
+	keeps := make(map[int64]string)
 
-func (ec *EthereumClient) KeepAddress(index int64) (string, error) {
-	address, err := ec.keepFactoryContract.GetKeepAtIndex(nil, big.NewInt(index))
-	if err != nil {
-		return "", err
+	for index := int64(0); index < keepCount.Int64(); index++ {
+		address, err := ec.keepFactoryContract.GetKeepAtIndex(
+			nil,
+			big.NewInt(index),
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		keep, err := ec.getKeep(address.Hex())
+		if err != nil {
+			return nil, err
+		}
+
+		isActive, err := keep.IsActive(nil)
+		if err != nil {
+			return nil, err
+		}
+
+		if isActive {
+			keeps[index] = address.Hex()
+		}
 	}
 
-	return address.Hex(), err
+	return keeps, nil
 }
 
-func (ec *EthereumClient) KeepDistinctMembers(
+func (ec *EthereumClient) KeepMembers(
 	address string,
-) (map[string]bool, error) {
+) ([]string, error) {
 	keep, err := ec.getKeep(address)
 	if err != nil {
 		return nil, err
@@ -121,12 +138,12 @@ func (ec *EthereumClient) KeepDistinctMembers(
 		return nil, err
 	}
 
-	hexes := make(map[string]bool)
+	members := make([]string, 0)
 	for _, address := range addresses {
-		hexes[address.Hex()] = true
+		members = append(members, address.Hex())
 	}
 
-	return hexes, err
+	return members, err
 }
 
 func (ec *EthereumClient) getKeep(
