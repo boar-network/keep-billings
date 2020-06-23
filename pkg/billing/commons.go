@@ -14,6 +14,8 @@ type Report struct {
 
 	OperatorBalance    string
 	BeneficiaryBalance string
+
+	AccumulatedRewards string
 }
 
 type DataSource interface {

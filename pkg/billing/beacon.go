@@ -138,6 +138,7 @@ func (brg *BeaconReportGenerator) Generate(
 		Customer:           customer,
 		OperatorBalance:    operatorBalance.String(),
 		BeneficiaryBalance: beneficiaryBalance.String(),
+		AccumulatedRewards: "-",
 	}
 
 	return &BeaconReport{

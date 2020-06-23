@@ -105,6 +105,7 @@ func (erg *EcdsaReportGenerator) Generate(
 		Customer:           customer,
 		OperatorBalance:    operatorBalance.String(),
 		BeneficiaryBalance: beneficiaryBalance.String(),
+		AccumulatedRewards: "-",
 	}
 
 	return &EcdsaReport{
