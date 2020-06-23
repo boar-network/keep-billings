@@ -3,12 +3,12 @@
     "name": "Customer A",
     "operator": "0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
     "beneficiary": "0xBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
-    "share": 50
+    "customerSharePercentage": 50
   },
   {
     "name": "Customer B",
     "operator": "0xCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC",
     "beneficiary": "0xDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD",
-    "share": 75
+    "customerSharePercentage": 75
   }
 ]

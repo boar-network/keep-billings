@@ -6,10 +6,10 @@ import (
 )
 
 type Customer struct {
-	Name            string
-	Operator        string
-	Beneficiary     string
-	SharePercentage int
+	Name                    string
+	Operator                string
+	Beneficiary             string
+	CustomerSharePercentage int
 }
 
 type Report struct {

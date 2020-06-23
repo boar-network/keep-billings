@@ -76,7 +76,6 @@ func GenerateBillings(c *cli.Context) error {
 		return err
 	}
 
-	// TODO: trigger each iteration asynchronously.
 	for _, customer := range customers {
 		logger.Infof("generating billing for [%v]", customer.Name)
 
