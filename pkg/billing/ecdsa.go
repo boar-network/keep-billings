@@ -91,8 +91,24 @@ func (erg *EcdsaReportGenerator) fetchKeepsData() ([]*keep, error) {
 func (erg *EcdsaReportGenerator) Generate(
 	customer *Customer,
 ) (*EcdsaReport, error) {
+	operatorBalance, err := erg.dataSource.GetEthBalance(customer.Operator)
+	if err != nil {
+		return nil, err
+	}
+
+	beneficiaryBalance, err := erg.dataSource.GetEthBalance(customer.Beneficiary)
+	if err != nil {
+		return nil, err
+	}
+
+	baseReport := &Report{
+		Customer:           customer,
+		OperatorBalance:    operatorBalance.String(),
+		BeneficiaryBalance: beneficiaryBalance.String(),
+	}
+
 	return &EcdsaReport{
-		Report:                  &Report{customer},
+		Report:                  baseReport,
 		ActiveKeepsCount:        len(erg.keeps),
 		ActiveKeepsMembersCount: erg.countActiveKeepsMembers(customer.Operator),
 	}, nil

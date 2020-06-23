@@ -124,8 +124,24 @@ func (brg *BeaconReportGenerator) fetchGroupsData() ([]*group, error) {
 func (brg *BeaconReportGenerator) Generate(
 	customer *Customer,
 ) (*BeaconReport, error) {
+	operatorBalance, err := brg.dataSource.GetEthBalance(customer.Operator)
+	if err != nil {
+		return nil, err
+	}
+
+	beneficiaryBalance, err := brg.dataSource.GetEthBalance(customer.Beneficiary)
+	if err != nil {
+		return nil, err
+	}
+
+	baseReport := &Report{
+		Customer:           customer,
+		OperatorBalance:    operatorBalance.String(),
+		BeneficiaryBalance: beneficiaryBalance.String(),
+	}
+
 	return &BeaconReport{
-		Report:                   &Report{customer},
+		Report:                   baseReport,
 		ActiveGroupsCount:        len(brg.groups),
 		ActiveGroupsMembersCount: brg.countActiveGroupsMembers(customer.Operator),
 	}, nil

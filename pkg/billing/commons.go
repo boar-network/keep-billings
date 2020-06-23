@@ -11,8 +11,11 @@ type Customer struct {
 
 type Report struct {
 	Customer *Customer
+
+	OperatorBalance    string
+	BeneficiaryBalance string
 }
 
 type DataSource interface {
-	GetBalance(address string) (*big.Int, error)
+	GetEthBalance(address string) (*big.Int, error)
 }

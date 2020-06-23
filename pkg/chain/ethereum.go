@@ -1,6 +1,7 @@
 package chain
 
 import (
+	"context"
 	coreabi "github.com/boar-network/reports/pkg/chain/gen/core/abi"
 	ecdsaabi "github.com/boar-network/reports/pkg/chain/gen/ecdsa/abi"
 	"github.com/ethereum/go-ethereum/common"
@@ -47,9 +48,17 @@ func NewEthereumClient(
 	}, nil
 }
 
-func (ec *EthereumClient) GetBalance(address string) (*big.Int, error) {
-	// TODO: implementation.
-	return big.NewInt(0), nil
+func (ec *EthereumClient) GetEthBalance(address string) (*big.Int, error) {
+	weiBalance, err := ec.client.BalanceAt(
+		context.Background(),
+		common.HexToAddress(address),
+		nil,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return new(big.Int).Div(weiBalance, big.NewInt(1e18)), nil
 }
 
 func (ec *EthereumClient) ActiveGroupsCount() (int64, error) {

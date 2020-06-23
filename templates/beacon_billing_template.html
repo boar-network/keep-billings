@@ -17,6 +17,7 @@
 
     <body>
         <h1 style="text-align: center">Random Beacon Billing - {{ .Customer.Name }}</h1>
+
         <h2>Customer</h2>
         <table>
             <tr>
@@ -24,12 +25,24 @@
                 <td>{{ .Customer.Name }}</td>
             </tr>
             <tr>
-                <td>Operator address</td>
+                <td>Operator account</td>
                 <td>{{ .Customer.Operator }}</td>
             </tr>
             <tr>
-                <td>Beneficiary address</td>
+                <td>Beneficiary account</td>
                 <td>{{ .Customer.Beneficiary }}</td>
+            </tr>
+        </table>
+
+        <h2>Accounts balances</h2>
+        <table>
+            <tr>
+                <td>Operator account balance</td>
+                <td>{{ .OperatorBalance }} ETH</td>
+            </tr>
+            <tr>
+                <td>Beneficiary account balance</td>
+                <td>{{ .BeneficiaryBalance }} ETH</td>
             </tr>
         </table>
 
