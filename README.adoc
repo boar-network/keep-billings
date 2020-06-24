@@ -43,6 +43,6 @@ input data. You can find an example of this file in:
 
 You can generate billing reports by doing:
 ```
-./reports billings
+./reports billings --from-block 100 --to-block 200
 ```
-Run this command with `-h` flag to see available options.
+Run this command with `-h` flag to see all available options.

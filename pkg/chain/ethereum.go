@@ -1,11 +1,16 @@
 package chain
 
 import (
+	"bytes"
 	"context"
+	"fmt"
 	coreabi "github.com/boar-network/reports/pkg/chain/gen/core/abi"
 	ecdsaabi "github.com/boar-network/reports/pkg/chain/gen/ecdsa/abi"
+	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/common"
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
+	"log"
 	"math/big"
 )
 
@@ -48,7 +53,7 @@ func NewEthereumClient(
 	}, nil
 }
 
-func (ec *EthereumClient) GetEthBalance(address string) (*big.Int, error) {
+func (ec *EthereumClient) EthBalance(address string) (*big.Int, error) {
 	weiBalance, err := ec.client.BalanceAt(
 		context.Background(),
 		common.HexToAddress(address),
@@ -59,6 +64,59 @@ func (ec *EthereumClient) GetEthBalance(address string) (*big.Int, error) {
 	}
 
 	return new(big.Int).Div(weiBalance, big.NewInt(1e18)), nil
+}
+
+func (ec *EthereumClient) OutboundTransactions(
+	address string,
+	fromBlock, toBlock int64,
+) (map[int64][]string, error) {
+	ctx := context.TODO()
+
+	if fromBlock > toBlock {
+		return nil, fmt.Errorf(
+			"fromBlock could not be smaller than toBlock",
+		)
+	}
+
+	addressFromHex := common.HexToAddress(address)
+
+	chainID, err := ec.client.NetworkID(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	blocksTransactions := make(map[int64][]string)
+
+	for blockNumber := fromBlock; blockNumber <= toBlock; blockNumber++ {
+		block, err := ec.client.BlockByNumber(ctx, big.NewInt(blockNumber))
+		if err != nil {
+			if err == ethereum.NotFound {
+				break
+			}
+
+			return nil, err
+		}
+
+		transactions := make([]string, 0)
+
+		for _, transaction := range block.Transactions() {
+			message, err := transaction.AsMessage(types.NewEIP155Signer(chainID))
+			if err != nil {
+				return nil, err
+			}
+
+			from := message.From()
+			if !bytes.Equal(addressFromHex[:], from[:]) {
+				continue
+			}
+
+			transactions = append(transactions, transaction.Hash().Hex())
+		}
+
+		blocksTransactions[blockNumber] = transactions
+	}
+
+	return blocksTransactions, nil
 }
 
 func (ec *EthereumClient) ActiveGroupsCount() (int64, error) {

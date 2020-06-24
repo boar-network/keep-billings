@@ -126,13 +126,24 @@ func (brg *BeaconReportGenerator) fetchGroupsData() ([]*group, error) {
 
 func (brg *BeaconReportGenerator) Generate(
 	customer *Customer,
+	fromBlock, toBlock int64,
 ) (*BeaconReport, error) {
-	operatorBalance, err := brg.dataSource.GetEthBalance(customer.Operator)
+	operatorBalance, err := brg.dataSource.EthBalance(customer.Operator)
 	if err != nil {
 		return nil, err
 	}
 
-	beneficiaryBalance, err := brg.dataSource.GetEthBalance(customer.Beneficiary)
+	beneficiaryBalance, err := brg.dataSource.EthBalance(customer.Beneficiary)
+	if err != nil {
+		return nil, err
+	}
+
+	transactions, err := outboundTransactions(
+		customer.Operator,
+		fromBlock,
+		toBlock,
+		brg.dataSource,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -142,6 +153,9 @@ func (brg *BeaconReportGenerator) Generate(
 		OperatorBalance:    operatorBalance.String(),
 		BeneficiaryBalance: beneficiaryBalance.String(),
 		AccumulatedRewards: "-",
+		FromBlock:          fromBlock,
+		ToBlock:            toBlock,
+		Transactions:       transactions,
 	}
 
 	return &BeaconReport{

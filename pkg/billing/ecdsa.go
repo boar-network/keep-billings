@@ -91,13 +91,24 @@ func (erg *EcdsaReportGenerator) fetchKeepsData() ([]*keep, error) {
 
 func (erg *EcdsaReportGenerator) Generate(
 	customer *Customer,
+	fromBlock, toBlock int64,
 ) (*EcdsaReport, error) {
-	operatorBalance, err := erg.dataSource.GetEthBalance(customer.Operator)
+	operatorBalance, err := erg.dataSource.EthBalance(customer.Operator)
 	if err != nil {
 		return nil, err
 	}
 
-	beneficiaryBalance, err := erg.dataSource.GetEthBalance(customer.Beneficiary)
+	beneficiaryBalance, err := erg.dataSource.EthBalance(customer.Beneficiary)
+	if err != nil {
+		return nil, err
+	}
+
+	transactions, err := outboundTransactions(
+		customer.Operator,
+		fromBlock,
+		toBlock,
+		erg.dataSource,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -107,6 +118,9 @@ func (erg *EcdsaReportGenerator) Generate(
 		OperatorBalance:    operatorBalance.String(),
 		BeneficiaryBalance: beneficiaryBalance.String(),
 		AccumulatedRewards: "-",
+		FromBlock:          fromBlock,
+		ToBlock:            toBlock,
+		Transactions:       transactions,
 	}
 
 	return &EcdsaReport{

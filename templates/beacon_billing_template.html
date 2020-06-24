@@ -82,5 +82,23 @@
                 </tr>
             {{ end }}
         </table>
+
+        <h2>Operator account billing (block {{ .FromBlock}} - block {{ .ToBlock }})</h2>
+        <table>
+            <tr>
+                <th>Block number</th>
+                <th>Transaction hash</th>
+                <th>Transaction fee</th>
+                <th>Operation</th>
+            </tr>
+            {{ range .Transactions }}
+                <tr>
+                    <td>{{ .Block }}</td>
+                    <td>{{ .Hash }}</td>
+                    <td>{{ .Fee }}</td>
+                    <td>{{ .Operation }}</td>
+                </tr>
+            {{ end }}
+        </table>
     </body>
 </html>
