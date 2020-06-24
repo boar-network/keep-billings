@@ -10,6 +10,7 @@ type EcdsaReport struct {
 
 	ActiveKeepsCount        int
 	ActiveKeepsMembersCount int
+	KeepsSummary            []string
 }
 
 type EcdsaDataSource interface {
@@ -112,6 +113,7 @@ func (erg *EcdsaReportGenerator) Generate(
 		Report:                  baseReport,
 		ActiveKeepsCount:        len(erg.keeps),
 		ActiveKeepsMembersCount: erg.countActiveKeepsMembers(customer.Operator),
+		KeepsSummary:            erg.prepareKeepsSummary(customer.Operator),
 	}, nil
 }
 
@@ -129,4 +131,22 @@ func (erg *EcdsaReportGenerator) countActiveKeepsMembers(operator string) int {
 	}
 
 	return count
+}
+
+func (erg *EcdsaReportGenerator) prepareKeepsSummary(
+	operator string,
+) []string {
+	keepSummary := make([]string, 0)
+
+	operatorAddress := strings.ToLower(operator)
+
+	for _, keep := range erg.keeps {
+		for _, memberAddress := range keep.members {
+			if operatorAddress == strings.ToLower(memberAddress) {
+				keepSummary = append(keepSummary, strings.ToLower(keep.address))
+			}
+		}
+	}
+
+	return keepSummary
 }
