@@ -115,8 +115,8 @@ func (erg *EcdsaReportGenerator) Generate(
 
 	baseReport := &Report{
 		Customer:           customer,
-		OperatorBalance:    operatorBalance.String(),
-		BeneficiaryBalance: beneficiaryBalance.String(),
+		OperatorBalance:    operatorBalance.Text('f', 2),
+		BeneficiaryBalance: beneficiaryBalance.Text('f', 2),
 		AccumulatedRewards: "-",
 		FromBlock:          fromBlock,
 		ToBlock:            toBlock,

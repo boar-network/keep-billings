@@ -11,6 +11,7 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"log"
+	"math"
 	"math/big"
 )
 
@@ -53,7 +54,7 @@ func NewEthereumClient(
 	}, nil
 }
 
-func (ec *EthereumClient) EthBalance(address string) (*big.Int, error) {
+func (ec *EthereumClient) EthBalance(address string) (*big.Float, error) {
 	weiBalance, err := ec.client.BalanceAt(
 		context.Background(),
 		common.HexToAddress(address),
@@ -63,7 +64,7 @@ func (ec *EthereumClient) EthBalance(address string) (*big.Int, error) {
 		return nil, err
 	}
 
-	return new(big.Int).Div(weiBalance, big.NewInt(1e18)), nil
+	return WeiToEth(weiBalance), nil
 }
 
 func (ec *EthereumClient) OutboundTransactions(
@@ -117,6 +118,34 @@ func (ec *EthereumClient) OutboundTransactions(
 	}
 
 	return blocksTransactions, nil
+}
+
+func (ec *EthereumClient) TransactionGasPrice(hash string) (*big.Int, error) {
+	ctx := context.TODO()
+
+	transaction, _, err := ec.client.TransactionByHash(
+		ctx,
+		common.HexToHash(hash),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return transaction.GasPrice(), nil
+}
+
+func (ec *EthereumClient) TransactionGasUsed(hash string) (*big.Int, error) {
+	ctx := context.TODO()
+
+	receipt, err := ec.client.TransactionReceipt(
+		ctx,
+		common.HexToHash(hash),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return big.NewInt(int64(receipt.GasUsed)), nil
 }
 
 func (ec *EthereumClient) ActiveGroupsCount() (int64, error) {
@@ -220,4 +249,10 @@ func (ec *EthereumClient) getKeep(
 		common.HexToAddress(address),
 		ec.client,
 	)
+}
+
+func WeiToEth(wei *big.Int) *big.Float {
+	weiFloat := new(big.Float)
+	weiFloat.SetString(wei.String())
+	return new(big.Float).Quo(weiFloat, big.NewFloat(math.Pow10(18)))
 }

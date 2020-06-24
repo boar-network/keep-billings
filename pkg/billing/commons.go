@@ -1,6 +1,7 @@
 package billing
 
 import (
+	"github.com/boar-network/reports/pkg/chain"
 	"math/big"
 	"sort"
 )
@@ -26,11 +27,13 @@ type Report struct {
 }
 
 type DataSource interface {
-	EthBalance(address string) (*big.Int, error)
+	EthBalance(address string) (*big.Float, error)
 	OutboundTransactions(
 		address string,
 		fromBlock, toBlock int64,
 	) (map[int64][]string, error)
+	TransactionGasPrice(hash string) (*big.Int, error)
+	TransactionGasUsed(hash string) (*big.Int, error)
 }
 
 type Transaction struct {
@@ -72,10 +75,15 @@ func outboundTransactions(
 
 	for blockNumber, transactionsHashes := range blocksTransactions {
 		for _, transactionHash := range transactionsHashes {
+			fee, err := calculateTransactionFee(transactionHash, dataSource)
+			if err != nil {
+				return nil, err
+			}
+
 			transaction := &Transaction{
 				Block:     blockNumber,
 				Hash:      transactionHash,
-				Fee:       "-",
+				Fee:       fee.Text('f', 6),
 				Operation: "-",
 			}
 
@@ -86,4 +94,20 @@ func outboundTransactions(
 	sort.Stable(byBlock(transactions))
 
 	return transactions, nil
+}
+
+func calculateTransactionFee(hash string, dataSource DataSource) (*big.Float, error) {
+	gasPrice, err := dataSource.TransactionGasPrice(hash)
+	if err != nil {
+		return nil, err
+	}
+
+	gasUsed, err := dataSource.TransactionGasUsed(hash)
+	if err != nil {
+		return nil, err
+	}
+
+	weiFee := new(big.Int).Mul(gasPrice, gasUsed)
+
+	return chain.WeiToEth(weiFee), nil
 }
