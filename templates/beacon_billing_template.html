@@ -3,15 +3,17 @@
         table {
             width: 100%;
             border-collapse: collapse;
+            table-layout: fixed;
         }
 
-        table, tr, td {
+        table, th, tr, td {
             border: 1px solid gray;
         }
 
         th, td {
             padding: 15px;
             text-align: left;
+            word-wrap: break-word
         }
     </style>
 
@@ -55,7 +57,7 @@
         </table>
 
         <h2>Groups</h2>
-        <table>
+        <table style="margin-bottom: 30px">
             <tr>
                 <td>The number of currently active beacon groups</td>
                 <td>{{ .ActiveGroupsCount }}</td>
@@ -64,6 +66,18 @@
                 <td>The number of your members in currently active beacon groups</td>
                 <td>{{ .ActiveGroupsMembersCount }}</td>
             </tr>
+        </table>
+        <table>
+            <tr>
+                <th>Group</th>
+                <th>Members</th>
+            </tr>
+            {{ range $group, $operatorMembers := .GroupsSummary }}
+                <tr>
+                    <td>{{ $group }}</td>
+                    <td>{{ $operatorMembers }}</td>
+                </tr>
+            {{ end }}
         </table>
     </body>
 </html>

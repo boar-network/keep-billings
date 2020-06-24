@@ -1,7 +1,9 @@
 package billing
 
 import (
+	"encoding/hex"
 	"fmt"
+	"sort"
 	"strings"
 )
 
@@ -10,6 +12,7 @@ type BeaconReport struct {
 
 	ActiveGroupsCount        int
 	ActiveGroupsMembersCount int
+	GroupsSummary            map[string]string
 }
 
 type BeaconDataSource interface {
@@ -145,6 +148,7 @@ func (brg *BeaconReportGenerator) Generate(
 		Report:                   baseReport,
 		ActiveGroupsCount:        len(brg.groups),
 		ActiveGroupsMembersCount: brg.countActiveGroupsMembers(customer.Operator),
+		GroupsSummary:            brg.prepareGroupsSummary(customer.Operator),
 	}, nil
 }
 
@@ -162,4 +166,42 @@ func (brg *BeaconReportGenerator) countActiveGroupsMembers(operator string) int 
 	}
 
 	return count
+}
+
+func (brg *BeaconReportGenerator) prepareGroupsSummary(
+	operator string,
+) map[string]string {
+	groupsSummary := make(map[string]string)
+
+	operatorAddress := strings.ToLower(operator)
+
+	for _, group := range brg.groups {
+		operatorMembers := make([]int, 0)
+
+		for memberIndex, memberAddress := range group.members {
+			if operatorAddress == strings.ToLower(memberAddress) {
+				operatorMembers = append(operatorMembers, memberIndex)
+			}
+		}
+
+		sort.Ints(operatorMembers)
+
+		operatorMembersString := strings.Trim(
+			strings.Join(
+				strings.Fields(fmt.Sprint(operatorMembers)),
+				", ",
+			),
+			"[]",
+		)
+
+		if len(operatorMembersString) == 0 {
+			operatorMembersString = "No members"
+		}
+
+		group := "0x" + hex.EncodeToString(group.publicKey)[:32] + "..."
+
+		groupsSummary[group] = operatorMembersString
+	}
+
+	return groupsSummary
 }
