@@ -150,8 +150,8 @@ func (brg *BeaconReportGenerator) Generate(
 
 	baseReport := &Report{
 		Customer:           customer,
-		OperatorBalance:    operatorBalance.Text('f', 2),
-		BeneficiaryBalance: beneficiaryBalance.Text('f', 2),
+		OperatorBalance:    operatorBalance.Text('f', 6),
+		BeneficiaryBalance: beneficiaryBalance.Text('f', 6),
 		AccumulatedRewards: "-",
 		FromBlock:          fromBlock,
 		ToBlock:            toBlock,

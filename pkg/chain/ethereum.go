@@ -7,18 +7,30 @@ import (
 	coreabi "github.com/boar-network/reports/pkg/chain/gen/core/abi"
 	ecdsaabi "github.com/boar-network/reports/pkg/chain/gen/ecdsa/abi"
 	"github.com/ethereum/go-ethereum"
+	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
 	"log"
 	"math"
 	"math/big"
+	"strings"
 )
+
+var methodLookupAbiStrings = []string{
+	coreabi.TokenStakingABI,
+	coreabi.KeepRandomBeaconOperatorABI,
+	coreabi.KeepRandomBeaconServiceImplV1ABI,
+	ecdsaabi.BondedECDSAKeepFactoryABI,
+	ecdsaabi.BondedECDSAKeepABI,
+	ecdsaabi.KeepBondingABI,
+}
 
 type EthereumClient struct {
 	client              *ethclient.Client
 	operatorContract    *coreabi.KeepRandomBeaconOperatorCaller
 	keepFactoryContract *ecdsaabi.BondedECDSAKeepFactoryCaller
+	methodLookupAbiList []abi.ABI
 }
 
 func NewEthereumClient(
@@ -47,10 +59,21 @@ func NewEthereumClient(
 		return nil, err
 	}
 
+	methodLookupAbiList := make([]abi.ABI, len(methodLookupAbiStrings))
+	for i := range methodLookupAbiList {
+		methodLookupAbiList[i], err = abi.JSON(
+			strings.NewReader(methodLookupAbiStrings[i]),
+		)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return &EthereumClient{
 		client:              client,
 		operatorContract:    operatorContract,
 		keepFactoryContract: keepFactoryContract,
+		methodLookupAbiList: methodLookupAbiList,
 	}, nil
 }
 
@@ -146,6 +169,29 @@ func (ec *EthereumClient) TransactionGasUsed(hash string) (*big.Int, error) {
 	}
 
 	return big.NewInt(int64(receipt.GasUsed)), nil
+}
+
+func (ec *EthereumClient) TransactionMethod(hash string) (string, error) {
+	ctx := context.TODO()
+
+	transaction, _, err := ec.client.TransactionByHash(
+		ctx,
+		common.HexToHash(hash),
+	)
+	if err != nil {
+		return "", err
+	}
+
+	for _, lookupAbi := range ec.methodLookupAbiList {
+		method, err := lookupAbi.MethodById(transaction.Data()[:4])
+		if err != nil {
+			continue
+		}
+
+		return method.Name, nil
+	}
+
+	return "", nil
 }
 
 func (ec *EthereumClient) ActiveGroupsCount() (int64, error) {

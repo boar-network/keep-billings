@@ -34,6 +34,7 @@ type DataSource interface {
 	) (map[int64][]string, error)
 	TransactionGasPrice(hash string) (*big.Int, error)
 	TransactionGasUsed(hash string) (*big.Int, error)
+	TransactionMethod(hash string) (string, error)
 }
 
 type Transaction struct {
@@ -80,11 +81,16 @@ func outboundTransactions(
 				return nil, err
 			}
 
+			operation, err := dataSource.TransactionMethod(transactionHash)
+			if err != nil {
+				return nil, err
+			}
+
 			transaction := &Transaction{
 				Block:     blockNumber,
 				Hash:      transactionHash,
 				Fee:       fee.Text('f', 6),
-				Operation: "-",
+				Operation: operation,
 			}
 
 			transactions = append(transactions, transaction)
