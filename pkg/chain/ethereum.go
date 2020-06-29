@@ -305,6 +305,17 @@ func (ec *EthereumClient) KeepMembers(
 	return members, err
 }
 
+func (ec *EthereumClient) KeepMemberBalance(
+	keepAddress, memberAddress string,
+) (*big.Int, error) {
+	keep, err := ec.getKeep(keepAddress)
+	if err != nil {
+		return nil, err
+	}
+
+	return keep.GetMemberETHBalance(nil, common.HexToAddress(memberAddress))
+}
+
 func (ec *EthereumClient) getKeep(
 	address string,
 ) (*ecdsaabi.BondedECDSAKeepCaller, error) {

@@ -2,6 +2,8 @@ package billing
 
 import (
 	"fmt"
+	"github.com/boar-network/reports/pkg/chain"
+	"math/big"
 	"strings"
 )
 
@@ -18,12 +20,23 @@ type EcdsaDataSource interface {
 
 	ActiveKeeps() (map[int64]string, error)
 	KeepMembers(address string) ([]string, error)
+	KeepMemberBalance(keepAddress, memberAddress string) (*big.Int, error)
 }
 
 type keep struct {
 	index   int64
 	address string
 	members []string
+}
+
+func (k *keep) hasMember(address string) bool {
+	for _, member := range k.members {
+		if strings.ToLower(address) == strings.ToLower(member) {
+			return true
+		}
+	}
+
+	return false
 }
 
 type EcdsaReportGenerator struct {
@@ -103,6 +116,11 @@ func (erg *EcdsaReportGenerator) Generate(
 		return nil, err
 	}
 
+	accumulatedRewards, err := erg.calculateAccumulatedRewards(customer.Operator)
+	if err != nil {
+		return nil, err
+	}
+
 	transactions, err := outboundTransactions(
 		customer.Operator,
 		fromBlock,
@@ -117,7 +135,7 @@ func (erg *EcdsaReportGenerator) Generate(
 		Customer:           customer,
 		OperatorBalance:    operatorBalance.Text('f', 6),
 		BeneficiaryBalance: beneficiaryBalance.Text('f', 6),
-		AccumulatedRewards: "-",
+		AccumulatedRewards: accumulatedRewards.Text('f', 6),
 		FromBlock:          fromBlock,
 		ToBlock:            toBlock,
 		Transactions:       transactions,
@@ -163,4 +181,31 @@ func (erg *EcdsaReportGenerator) prepareKeepsSummary(
 	}
 
 	return keepSummary
+}
+
+func (erg *EcdsaReportGenerator) calculateAccumulatedRewards(
+	operator string,
+) (*big.Float, error) {
+	accumulatedRewardsWei := big.NewInt(0)
+
+	for _, keep := range erg.keeps {
+		if !keep.hasMember(operator) {
+			continue
+		}
+
+		keepMemberBalanceWei, err := erg.dataSource.KeepMemberBalance(
+			keep.address,
+			operator,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		accumulatedRewardsWei = new(big.Int).Add(
+			accumulatedRewardsWei,
+			keepMemberBalanceWei,
+		)
+	}
+
+	return chain.WeiToEth(accumulatedRewardsWei), nil
 }
