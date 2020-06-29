@@ -3,6 +3,8 @@ package billing
 import (
 	"encoding/hex"
 	"fmt"
+	"github.com/boar-network/reports/pkg/chain"
+	"math/big"
 	"sort"
 	"strings"
 )
@@ -22,6 +24,8 @@ type BeaconDataSource interface {
 	FirstActiveGroupIndex() (int64, error)
 	GroupPublicKey(index int64) ([]byte, error)
 	GroupMembers(groupPublicKey []byte) (map[int]string, error)
+	GroupMemberRewards(groupPublicKey []byte) (*big.Int, error)
+	AreRewardsWithdrawn(operator string, groupIndex int64) (bool, error)
 }
 
 type group struct {
@@ -138,6 +142,11 @@ func (brg *BeaconReportGenerator) Generate(
 		return nil, err
 	}
 
+	accumulatedRewards, err := brg.calculateAccumulatedRewards(customer.Operator)
+	if err != nil {
+		return nil, err
+	}
+
 	transactions, err := outboundTransactions(
 		customer.Operator,
 		fromBlock,
@@ -152,7 +161,7 @@ func (brg *BeaconReportGenerator) Generate(
 		Customer:           customer,
 		OperatorBalance:    operatorBalance.Text('f', 6),
 		BeneficiaryBalance: beneficiaryBalance.Text('f', 6),
-		AccumulatedRewards: "-",
+		AccumulatedRewards: accumulatedRewards.Text('f', 6),
 		FromBlock:          fromBlock,
 		ToBlock:            toBlock,
 		Transactions:       transactions,
@@ -169,13 +178,24 @@ func (brg *BeaconReportGenerator) Generate(
 func (brg *BeaconReportGenerator) countActiveGroupsMembers(operator string) int {
 	count := 0
 
+	for _, group := range brg.groups {
+		count += countActiveGroupMembers(operator, group)
+	}
+
+	return count
+}
+
+func countActiveGroupMembers(
+	operator string,
+	group *group,
+) int {
+	count := 0
+
 	operatorAddress := strings.ToLower(operator)
 
-	for _, group := range brg.groups {
-		for _, memberAddress := range group.members {
-			if operatorAddress == strings.ToLower(memberAddress) {
-				count++
-			}
+	for _, memberAddress := range group.members {
+		if operatorAddress == strings.ToLower(memberAddress) {
+			count++
 		}
 	}
 
@@ -218,4 +238,41 @@ func (brg *BeaconReportGenerator) prepareGroupsSummary(
 	}
 
 	return groupsSummary
+}
+
+func (brg *BeaconReportGenerator) calculateAccumulatedRewards(
+	operator string,
+) (*big.Float, error) {
+	accumulatedRewardsWei := big.NewInt(0)
+
+	for _, group := range brg.groups {
+		rewardsWithdrawn, err := brg.dataSource.AreRewardsWithdrawn(
+			operator,
+			group.index,
+		)
+		if err != nil {
+			return nil, err
+		}
+
+		if rewardsWithdrawn {
+			continue
+		}
+
+		memberRewards, err := brg.dataSource.GroupMemberRewards(group.publicKey)
+		if err != nil {
+			return nil, err
+		}
+
+		groupRewardsWei := new(big.Int).Mul(
+			memberRewards,
+			big.NewInt(int64(countActiveGroupMembers(operator, group))),
+		)
+
+		accumulatedRewardsWei = new(big.Int).Add(
+			accumulatedRewardsWei,
+			groupRewardsWei,
+		)
+	}
+
+	return chain.WeiToEth(accumulatedRewardsWei), nil
 }

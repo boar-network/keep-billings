@@ -232,6 +232,23 @@ func (ec *EthereumClient) GroupMembers(
 	return members, err
 }
 
+func (ec *EthereumClient) GroupMemberRewards(
+	groupPublicKey []byte,
+) (*big.Int, error) {
+	return ec.operatorContract.GetGroupMemberRewards(nil, groupPublicKey)
+}
+
+func (ec *EthereumClient) AreRewardsWithdrawn(
+	operator string,
+	groupIndex int64,
+) (bool, error) {
+	return ec.operatorContract.HasWithdrawnRewards(
+		nil,
+		common.HexToAddress(operator),
+		big.NewInt(groupIndex),
+	)
+}
+
 func (ec *EthereumClient) ActiveKeeps() (map[int64]string, error) {
 	keepCount, err := ec.keepFactoryContract.GetKeepCount(nil)
 	if err != nil {
