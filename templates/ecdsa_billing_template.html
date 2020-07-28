@@ -80,13 +80,16 @@
         <p>Keeps you are a member of:</p>
 
         <table>
-            <tr>
-                <th>Keep</th>
-            </tr>
-            {{ range $keep := .KeepsSummary }}
+            {{ if not .KeepsSummary }}
                 <tr>
-                    <td>{{ $keep }}</td>
+                    <td>No keeps</td>
                 </tr>
+            {{ else }}
+                {{ range $keep := .KeepsSummary }}
+                    <tr>
+                        <td>{{ $keep }}</td>
+                    </tr>
+                {{ end }}
             {{ end }}
         </table>
 
