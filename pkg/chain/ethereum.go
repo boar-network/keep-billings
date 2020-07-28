@@ -213,8 +213,8 @@ func (ec *EthereumClient) FirstActiveGroupIndex() (int64, error) {
 	return result.Int64(), nil
 }
 
-func (ec *EthereumClient) GroupPublicKey(index int64) ([]byte, error) {
-	return ec.operatorContract.GetGroupPublicKey(nil, big.NewInt(index))
+func (ec *EthereumClient) GroupPublicKey(groupIndex int64) ([]byte, error) {
+	return ec.operatorContract.GetGroupPublicKey(nil, big.NewInt(groupIndex))
 }
 
 func (ec *EthereumClient) GroupMembers(
