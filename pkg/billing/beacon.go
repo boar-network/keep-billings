@@ -71,7 +71,7 @@ func (brg *BeaconReportGenerator) fetchGroupsData() ([]*group, error) {
 	activeGroupsCount, err := brg.dataSource.ActiveGroupsCount()
 	if err != nil {
 		return nil, fmt.Errorf(
-			"could not get groups count: [%v]",
+			"could not get active groups count: [%v]",
 			err,
 		)
 	}
