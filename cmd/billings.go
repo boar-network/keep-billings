@@ -7,9 +7,9 @@ import (
 	"os"
 	"strings"
 
-	"github.com/boar-network/billings/pkg/billing"
-	"github.com/boar-network/billings/pkg/chain"
-	"github.com/boar-network/billings/pkg/exporter"
+	"github.com/boar-network/keep-billings/pkg/billing"
+	"github.com/boar-network/keep-billings/pkg/chain"
+	"github.com/boar-network/keep-billings/pkg/exporter"
 	"github.com/ipfs/go-log"
 	"github.com/urfave/cli"
 )

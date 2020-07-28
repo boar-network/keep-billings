@@ -4,17 +4,18 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	coreabi "github.com/boar-network/billings/pkg/chain/gen/core/abi"
-	ecdsaabi "github.com/boar-network/billings/pkg/chain/gen/ecdsa/abi"
+	"log"
+	"math"
+	"math/big"
+	"strings"
+
+	coreabi "github.com/boar-network/keep-billings/pkg/chain/gen/core/abi"
+	ecdsaabi "github.com/boar-network/keep-billings/pkg/chain/gen/ecdsa/abi"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
-	"log"
-	"math"
-	"math/big"
-	"strings"
 )
 
 var methodLookupAbiStrings = []string{

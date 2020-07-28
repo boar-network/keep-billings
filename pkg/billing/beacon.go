@@ -7,7 +7,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/boar-network/billings/pkg/chain"
+	"github.com/boar-network/keep-billings/pkg/chain"
 )
 
 type BeaconReport struct {

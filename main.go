@@ -3,7 +3,7 @@ package main
 import (
 	"os"
 
-	"github.com/boar-network/billings/cmd"
+	"github.com/boar-network/keep-billings/cmd"
 	"github.com/ipfs/go-log"
 	"github.com/urfave/cli"
 )

@@ -22,7 +22,7 @@ If so, you can run the installation script by doing:
 ./scripts/install.sh
 ```
 
-A binary named `billings` should be created.
+A binary named `keep-billings` should be created.
 
 == Configuration
 
@@ -43,6 +43,6 @@ input data. You can find an example of this file in:
 
 You can generate billing reports by doing:
 ```
-./billings generate --from-block 100 --to-block 200
+./keep-billings generate --from-block 100 --to-block 200
 ```
 Run this command with `-h` flag to see all available options.
