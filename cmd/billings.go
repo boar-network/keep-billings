@@ -119,7 +119,7 @@ func GenerateBillings(c *cli.Context) error {
 			return ecdsaReportGenerator.Generate(customer, fromBlock, toBlock)
 		},
 		ecdsaPdfExporter,
-		config.Billings.TargetDirectory+"/%v_Ecdsa_Billing.pdf",
+		config.Billings.TargetDirectory+"/%v_ECDSA_Billing.pdf",
 	)
 
 	return nil
