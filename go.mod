@@ -1,4 +1,4 @@
-module github.com/boar-network/reports
+module github.com/boar-network/keep-billings
 
 go 1.13
 

@@ -1,12 +1,12 @@
-= Reports
+= Billing Reports
 
-This repository contains some tools to generate reports.
+This repository contains tooling for generating KEEP staker billing reports.
 
 == Installation
 
 To install, first clone this repository on your machine:
 ```
-git clone git@github.com:boar-network/reports.git
+git clone git@github.com:boar-network/keep-billings.git
 ```
 
 Then, make sure you have the following tools on your machine:
@@ -22,7 +22,7 @@ If so, you can run the installation script by doing:
 ./scripts/install.sh
 ```
 
-A binary named `reports` should be created.
+A binary named `billings` should be created.
 
 == Configuration
 
@@ -43,6 +43,6 @@ input data. You can find an example of this file in:
 
 You can generate billing reports by doing:
 ```
-./reports billings --from-block 100 --to-block 200
+./billings generate --from-block 100 --to-block 200
 ```
 Run this command with `-h` flag to see all available options.

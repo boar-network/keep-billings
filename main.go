@@ -1,20 +1,21 @@
 package main
 
 import (
-	"github.com/boar-network/reports/cmd"
+	"os"
+
+	"github.com/boar-network/billings/cmd"
 	"github.com/ipfs/go-log"
 	"github.com/urfave/cli"
-	"os"
 )
 
-var logger = log.Logger("reports-main")
+var logger = log.Logger("billings-main")
 
 func main() {
 	_ = log.SetLogLevel("*", "DEBUG")
 
 	app := cli.NewApp()
 
-	app.Usage = "reporting tools"
+	app.Usage = "KEEP staker billing report generator"
 
 	app.Commands = []cli.Command{
 		cmd.BillingsCommand,

@@ -1,9 +1,10 @@
 package billing
 
 import (
-	"github.com/boar-network/reports/pkg/chain"
 	"math/big"
 	"sort"
+
+	"github.com/boar-network/billings/pkg/chain"
 )
 
 type Customer struct {

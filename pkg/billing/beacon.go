@@ -3,10 +3,11 @@ package billing
 import (
 	"encoding/hex"
 	"fmt"
-	"github.com/boar-network/reports/pkg/chain"
 	"math/big"
 	"sort"
 	"strings"
+
+	"github.com/boar-network/billings/pkg/chain"
 )
 
 type BeaconReport struct {

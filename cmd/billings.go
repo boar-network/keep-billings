@@ -3,24 +3,25 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/boar-network/reports/pkg/billing"
-	"github.com/boar-network/reports/pkg/chain"
-	"github.com/boar-network/reports/pkg/exporter"
-	"github.com/ipfs/go-log"
-	"github.com/urfave/cli"
 	"io/ioutil"
 	"os"
 	"strings"
+
+	"github.com/boar-network/billings/pkg/billing"
+	"github.com/boar-network/billings/pkg/chain"
+	"github.com/boar-network/billings/pkg/exporter"
+	"github.com/ipfs/go-log"
+	"github.com/urfave/cli"
 )
 
-var logger = log.Logger("reports-cmd")
+var logger = log.Logger("billings-cmd")
 
 const (
 	defaultConfigFile = "./configs/config.toml"
 )
 
 var BillingsCommand = cli.Command{
-	Name:   "billings",
+	Name:   "generate",
 	Action: GenerateBillings,
 	Usage:  "Generates billing reports for provided customers",
 	Flags: []cli.Flag{

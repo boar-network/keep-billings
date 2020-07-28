@@ -2,9 +2,10 @@ package billing
 
 import (
 	"fmt"
-	"github.com/boar-network/reports/pkg/chain"
 	"math/big"
 	"strings"
+
+	"github.com/boar-network/billings/pkg/chain"
 )
 
 type EcdsaReport struct {
