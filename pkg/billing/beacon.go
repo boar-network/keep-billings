@@ -95,6 +95,9 @@ func (brg *BeaconReportGenerator) fetchGroupsData() ([]*group, error) {
 	//  Suppose group 0 is expired and group 3 is terminated.
 	//  So, firstActiveGroupIndex is 1 and activeGroupsCount is 3.
 	//  Because of that we will iterate on 1,2,3 instead of 1,2,4.
+	//
+	// The new version of keep random beacon operator contract has
+	// getNumberOfCreatedGroups function.
 	for i := int64(0); i < activeGroupsCount; i++ {
 		index := firstActiveGroupIndex + i
 
