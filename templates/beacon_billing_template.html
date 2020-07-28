@@ -15,6 +15,19 @@
             text-align: left;
             word-wrap: break-word
         }
+
+        .block-number {
+            width: 15%;
+        }
+        .transaction-hash {
+            width: 35%;
+        }
+        .transaction-fee {
+            width: 30%;
+        }
+        .operation {
+            width: 20%;
+        }
     </style>
 
     <body>
@@ -95,10 +108,10 @@
         <h2>Operator account billing (block {{ .FromBlock}} - block {{ .ToBlock }})</h2>
         <table>
             <tr>
-                <th>Block number</th>
-                <th>Transaction hash</th>
-                <th>Transaction fee</th>
-                <th>Operation</th>
+                <th class="block-number">Block number</th>
+                <th class="transaction-hash">Transaction hash</th>
+                <th class="transaction-fee">Transaction fee</th>
+                <th class="operation">Operation</th>
             </tr>
             {{ range .Transactions }}
                 <tr>

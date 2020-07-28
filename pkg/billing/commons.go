@@ -90,7 +90,7 @@ func outboundTransactions(
 			transaction := &Transaction{
 				Block:     blockNumber,
 				Hash:      transactionHash,
-				Fee:       fee.Text('f', 6),
+				Fee:       fee.Text('f', 18),
 				Operation: operation,
 			}
 
