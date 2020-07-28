@@ -144,12 +144,12 @@ func (ec *EthereumClient) OutboundTransactions(
 	return blocksTransactions, nil
 }
 
-func (ec *EthereumClient) TransactionGasPrice(hash string) (*big.Int, error) {
+func (ec *EthereumClient) TransactionGasPrice(txHash string) (*big.Int, error) {
 	ctx := context.TODO()
 
 	transaction, _, err := ec.client.TransactionByHash(
 		ctx,
-		common.HexToHash(hash),
+		common.HexToHash(txHash),
 	)
 	if err != nil {
 		return nil, err
@@ -158,12 +158,12 @@ func (ec *EthereumClient) TransactionGasPrice(hash string) (*big.Int, error) {
 	return transaction.GasPrice(), nil
 }
 
-func (ec *EthereumClient) TransactionGasUsed(hash string) (*big.Int, error) {
+func (ec *EthereumClient) TransactionGasUsed(txHash string) (*big.Int, error) {
 	ctx := context.TODO()
 
 	receipt, err := ec.client.TransactionReceipt(
 		ctx,
-		common.HexToHash(hash),
+		common.HexToHash(txHash),
 	)
 	if err != nil {
 		return nil, err
@@ -172,12 +172,12 @@ func (ec *EthereumClient) TransactionGasUsed(hash string) (*big.Int, error) {
 	return big.NewInt(int64(receipt.GasUsed)), nil
 }
 
-func (ec *EthereumClient) TransactionMethod(hash string) (string, error) {
+func (ec *EthereumClient) TransactionMethod(txHash string) (string, error) {
 	ctx := context.TODO()
 
 	transaction, _, err := ec.client.TransactionByHash(
 		ctx,
-		common.HexToHash(hash),
+		common.HexToHash(txHash),
 	)
 	if err != nil {
 		return "", err
