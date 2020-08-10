@@ -331,3 +331,9 @@ func WeiToEth(wei *big.Int) *big.Float {
 	weiFloat.SetString(wei.String())
 	return new(big.Float).Quo(weiFloat, big.NewFloat(math.Pow10(18)))
 }
+
+func WeiToGwei(wei *big.Int) *big.Float {
+	weiFloat := new(big.Float)
+	weiFloat.SetString(wei.String())
+	return new(big.Float).Quo(weiFloat, big.NewFloat(math.Pow10(9)))
+}

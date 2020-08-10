@@ -41,7 +41,7 @@ type DataSource interface {
 type Transaction struct {
 	Block     int64
 	Hash      string
-	Fee       string
+	Fee       string // [Gwei]
 	Operation string
 }
 
@@ -90,7 +90,7 @@ func outboundTransactions(
 			transaction := &Transaction{
 				Block:     blockNumber,
 				Hash:      transactionHash,
-				Fee:       fee.Text('f', 18),
+				Fee:       fee.Text('f', 9),
 				Operation: operation,
 			}
 
@@ -116,5 +116,5 @@ func calculateTransactionFee(hash string, dataSource DataSource) (*big.Float, er
 
 	weiFee := new(big.Int).Mul(gasPrice, gasUsed)
 
-	return chain.WeiToEth(weiFee), nil
+	return chain.WeiToGwei(weiFee), nil
 }
