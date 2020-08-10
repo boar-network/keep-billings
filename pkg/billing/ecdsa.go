@@ -11,23 +11,25 @@ import (
 type EcdsaReport struct {
 	*Report
 
-	ActiveKeepsCount        int
-	ActiveKeepsMembersCount int
-	KeepsSummary            []string
+	ActiveKeepsCount          int
+	ActiveKeepsMembersCount   int
+	ActiveKeepsSummary        []string
+	InactiveKeepsMembersCount int
 }
 
 type EcdsaDataSource interface {
 	DataSource
 
-	ActiveKeeps() (map[int64]string, error)
+	Keeps() (map[int64]string, map[int64]string, error)
 	KeepMembers(address string) ([]string, error)
 	KeepMemberBalance(keepAddress, memberAddress string) (*big.Int, error)
 }
 
 type keep struct {
-	index   int64
-	address string
-	members []string
+	index    int64
+	isActive bool
+	address  string
+	members  []string
 }
 
 func (k *keep) hasMember(address string) bool {
@@ -68,16 +70,16 @@ func (erg *EcdsaReportGenerator) FetchCommonData() error {
 func (erg *EcdsaReportGenerator) fetchKeepsData() ([]*keep, error) {
 	keeps := make([]*keep, 0)
 
-	activeKeeps, err := erg.dataSource.ActiveKeeps()
+	activeKeeps, inactiveKeeps, err := erg.dataSource.Keeps()
 	if err != nil {
-		return nil, fmt.Errorf("could not get active keeps: [%v]", err)
+		return nil, fmt.Errorf("could not get keeps: [%v]", err)
 	}
 
 	for index, address := range activeKeeps {
 		members, err := erg.dataSource.KeepMembers(address)
 		if err != nil {
 			return nil, fmt.Errorf(
-				"could not get members of keep [%v]: [%v]",
+				"could not get members of an active keep [%v]: [%v]",
 				address,
 				err,
 			)
@@ -86,9 +88,31 @@ func (erg *EcdsaReportGenerator) fetchKeepsData() ([]*keep, error) {
 		keeps = append(
 			keeps,
 			&keep{
-				index:   index,
-				address: address,
-				members: members,
+				index:    index,
+				isActive: true,
+				address:  address,
+				members:  members,
+			},
+		)
+	}
+
+	for index, address := range inactiveKeeps {
+		members, err := erg.dataSource.KeepMembers(address)
+		if err != nil {
+			return nil, fmt.Errorf(
+				"could not get members of inactive keep [%v]: [%v]",
+				address,
+				err,
+			)
+		}
+
+		keeps = append(
+			keeps,
+			&keep{
+				index:    index,
+				isActive: false,
+				address:  address,
+				members:  members,
 			},
 		)
 	}
@@ -147,11 +171,14 @@ func (erg *EcdsaReportGenerator) Generate(
 		Transactions:           transactions,
 	}
 
+	inactiveKeepMembersCount, activeKeepsSummary := erg.prepareKeepsSummary(customer.Operator)
+
 	return &EcdsaReport{
-		Report:                  baseReport,
-		ActiveKeepsCount:        len(erg.keeps),
-		ActiveKeepsMembersCount: erg.countActiveKeepsMembers(customer.Operator),
-		KeepsSummary:            erg.prepareKeepsSummary(customer.Operator),
+		Report:                    baseReport,
+		ActiveKeepsCount:          len(erg.keeps),
+		ActiveKeepsMembersCount:   erg.countActiveKeepsMembers(customer.Operator),
+		ActiveKeepsSummary:        activeKeepsSummary,
+		InactiveKeepsMembersCount: inactiveKeepMembersCount,
 	}, nil
 }
 
@@ -173,20 +200,26 @@ func (erg *EcdsaReportGenerator) countActiveKeepsMembers(operator string) int {
 
 func (erg *EcdsaReportGenerator) prepareKeepsSummary(
 	operator string,
-) []string {
-	keepSummary := make([]string, 0)
+) (int, []string) {
+	activeKeepSummary := make([]string, 0)
+	inactiveKeepsMemberCount := 0
 
 	operatorAddress := strings.ToLower(operator)
 
 	for _, keep := range erg.keeps {
 		for _, memberAddress := range keep.members {
 			if operatorAddress == strings.ToLower(memberAddress) {
-				keepSummary = append(keepSummary, strings.ToLower(keep.address))
+
+				if keep.isActive {
+					activeKeepSummary = append(activeKeepSummary, strings.ToLower(keep.address))
+				} else {
+					inactiveKeepsMemberCount++
+				}
 			}
 		}
 	}
 
-	return keepSummary
+	return inactiveKeepsMemberCount, activeKeepSummary
 }
 
 func (erg *EcdsaReportGenerator) calculateAccumulatedRewards(

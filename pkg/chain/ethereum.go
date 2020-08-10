@@ -292,13 +292,14 @@ func (ec *EthereumClient) AreRewardsWithdrawn(
 	)
 }
 
-func (ec *EthereumClient) ActiveKeeps() (map[int64]string, error) {
+func (ec *EthereumClient) Keeps() (map[int64]string, map[int64]string, error) {
 	keepCount, err := ec.keepFactoryContract.GetKeepCount(nil)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	keeps := make(map[int64]string)
+	activeKeeps := make(map[int64]string)
+	nonActiveKeeps := make(map[int64]string)
 
 	for index := int64(0); index < keepCount.Int64(); index++ {
 		address, err := ec.keepFactoryContract.GetKeepAtIndex(
@@ -306,25 +307,27 @@ func (ec *EthereumClient) ActiveKeeps() (map[int64]string, error) {
 			big.NewInt(index),
 		)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 
 		keep, err := ec.getKeep(address.Hex())
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 
 		isActive, err := keep.IsActive(nil)
 		if err != nil {
-			return nil, err
+			return nil, nil, err
 		}
 
 		if isActive {
-			keeps[index] = address.Hex()
+			activeKeeps[index] = address.Hex()
+		} else {
+			nonActiveKeeps[index] = address.Hex()
 		}
 	}
 
-	return keeps, nil
+	return activeKeeps, nonActiveKeeps, nil
 }
 
 func (ec *EthereumClient) KeepMembers(

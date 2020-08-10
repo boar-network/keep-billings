@@ -83,17 +83,21 @@
                 <td>The total number of active keeps you are a member of</td>
                 <td>{{ .ActiveKeepsMembersCount }}</td>
             </tr>
+            <tr>
+                <td>The total number of inactive keeps you are a member of</td>
+                <td>{{ .InactiveKeepsMembersCount }}</td>
+            </tr>
         </table>
 
         <p>Keeps you are a member of:</p>
 
         <table>
-            {{ if not .KeepsSummary }}
+            {{ if not .ActiveKeepsSummary }}
                 <tr>
                     <td>No keeps</td>
                 </tr>
             {{ else }}
-                {{ range $keep := .KeepsSummary }}
+                {{ range $keep := .ActiveKeepsSummary }}
                     <tr>
                         <td>{{ $keep }}</td>
                     </tr>
