@@ -42,6 +42,7 @@ type Transaction struct {
 	Block     int64
 	Hash      string
 	Fee       string // [Gwei]
+	Gas       string
 	Operation string
 }
 
@@ -77,7 +78,16 @@ func outboundTransactions(
 
 	for blockNumber, transactionsHashes := range blocksTransactions {
 		for _, transactionHash := range transactionsHashes {
-			fee, err := calculateTransactionFee(transactionHash, dataSource)
+			gasUsed, err := dataSource.TransactionGasUsed(transactionHash)
+			if err != nil {
+				return nil, err
+			}
+
+			fee, err := calculateTransactionFee(
+				transactionHash,
+				gasUsed,
+				dataSource,
+			)
 			if err != nil {
 				return nil, err
 			}
@@ -91,6 +101,7 @@ func outboundTransactions(
 				Block:     blockNumber,
 				Hash:      transactionHash,
 				Fee:       fee.Text('f', 9),
+				Gas:       gasUsed.Text(10),
 				Operation: operation,
 			}
 
@@ -103,13 +114,12 @@ func outboundTransactions(
 	return transactions, nil
 }
 
-func calculateTransactionFee(hash string, dataSource DataSource) (*big.Float, error) {
+func calculateTransactionFee(
+	hash string,
+	gasUsed *big.Int,
+	dataSource DataSource,
+) (*big.Float, error) {
 	gasPrice, err := dataSource.TransactionGasPrice(hash)
-	if err != nil {
-		return nil, err
-	}
-
-	gasUsed, err := dataSource.TransactionGasUsed(hash)
 	if err != nil {
 		return nil, err
 	}
