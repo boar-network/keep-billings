@@ -80,10 +80,7 @@ func GenerateBillings(c *cli.Context) error {
 		return err
 	}
 
-	beaconReportGenerator, err := billing.NewBeaconReportGenerator(ethereumClient)
-	if err != nil {
-		return err
-	}
+	beaconReportGenerator := billing.NewBeaconReportGenerator(ethereumClient)
 
 	beaconPdfExporter, err := exporter.NewPdfExporter(
 		config.Billings.BeaconTemplateFile,
@@ -94,6 +91,7 @@ func GenerateBillings(c *cli.Context) error {
 
 	generateBillings(
 		customers.Beacon,
+		beaconReportGenerator.FetchCommonData,
 		func(customer *billing.Customer) (interface{}, error) {
 			return beaconReportGenerator.Generate(customer, fromBlock, toBlock)
 		},
@@ -101,10 +99,7 @@ func GenerateBillings(c *cli.Context) error {
 		config.Billings.TargetDirectory+"/%v_Beacon_Billing.pdf",
 	)
 
-	ecdsaReportGenerator, err := billing.NewEcdsaReportGenerator(ethereumClient)
-	if err != nil {
-		return err
-	}
+	ecdsaReportGenerator := billing.NewEcdsaReportGenerator(ethereumClient)
 
 	ecdsaPdfExporter, err := exporter.NewPdfExporter(
 		config.Billings.EcdsaTemplateFile,
@@ -115,6 +110,7 @@ func GenerateBillings(c *cli.Context) error {
 
 	generateBillings(
 		customers.Ecdsa,
+		ecdsaReportGenerator.FetchCommonData,
 		func(customer *billing.Customer) (interface{}, error) {
 			return ecdsaReportGenerator.Generate(customer, fromBlock, toBlock)
 		},
@@ -147,10 +143,21 @@ func createTargetDirectory(config *Config) {
 
 func generateBillings(
 	customers []billing.Customer,
+	setUp func() error,
 	generate func(customer *billing.Customer) (interface{}, error),
 	pdfExporter *exporter.PdfExporter,
 	fileNameFormat string,
 ) {
+	if len(customers) == 0 {
+		logger.Infof("no customers to generate the report for, quitting")
+		return
+	}
+
+	if err := setUp(); err != nil {
+		logger.Errorf("could not set up generator: [%v]", err)
+		return
+	}
+
 	for _, customer := range customers {
 		logger.Infof("generating billing for [%v]", customer.Name)
 

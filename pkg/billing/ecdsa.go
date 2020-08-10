@@ -48,20 +48,13 @@ type EcdsaReportGenerator struct {
 
 func NewEcdsaReportGenerator(
 	dataSource EcdsaDataSource,
-) (*EcdsaReportGenerator, error) {
-	generator := &EcdsaReportGenerator{
+) *EcdsaReportGenerator {
+	return &EcdsaReportGenerator{
 		dataSource: dataSource,
 	}
-
-	err := generator.fetchCommonData()
-	if err != nil {
-		return nil, err
-	}
-
-	return generator, nil
 }
 
-func (erg *EcdsaReportGenerator) fetchCommonData() error {
+func (erg *EcdsaReportGenerator) FetchCommonData() error {
 	var err error
 
 	erg.keeps, err = erg.fetchKeepsData()

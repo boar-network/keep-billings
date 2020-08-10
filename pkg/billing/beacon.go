@@ -43,20 +43,13 @@ type BeaconReportGenerator struct {
 
 func NewBeaconReportGenerator(
 	dataSource BeaconDataSource,
-) (*BeaconReportGenerator, error) {
-	generator := &BeaconReportGenerator{
+) *BeaconReportGenerator {
+	return &BeaconReportGenerator{
 		dataSource: dataSource,
 	}
-
-	err := generator.fetchCommonData()
-	if err != nil {
-		return nil, err
-	}
-
-	return generator, nil
 }
 
-func (brg *BeaconReportGenerator) fetchCommonData() error {
+func (brg *BeaconReportGenerator) FetchCommonData() error {
 	var err error
 
 	brg.groups, err = brg.fetchGroupsData()
