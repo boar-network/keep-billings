@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+
 	"github.com/BurntSushi/toml"
 )
 
@@ -19,6 +20,7 @@ type Billings struct {
 
 type Ethereum struct {
 	URL                      string
+	KeepToken                string
 	KeepRandomBeaconOperator string
 	BondedECDSAKeepFactory   string
 }

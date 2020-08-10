@@ -105,7 +105,12 @@ func (erg *EcdsaReportGenerator) Generate(
 		return nil, err
 	}
 
-	beneficiaryBalance, err := erg.dataSource.EthBalance(customer.Beneficiary)
+	beneficiaryEthBalance, err := erg.dataSource.EthBalance(customer.Beneficiary)
+	if err != nil {
+		return nil, err
+	}
+
+	beneficiaryKeepBalance, err := erg.dataSource.KeepBalance(customer.Beneficiary)
 	if err != nil {
 		return nil, err
 	}
@@ -126,13 +131,14 @@ func (erg *EcdsaReportGenerator) Generate(
 	}
 
 	baseReport := &Report{
-		Customer:           customer,
-		OperatorBalance:    operatorBalance.Text('f', 6),
-		BeneficiaryBalance: beneficiaryBalance.Text('f', 6),
-		AccumulatedRewards: accumulatedRewards.Text('f', 6),
-		FromBlock:          fromBlock,
-		ToBlock:            toBlock,
-		Transactions:       transactions,
+		Customer:               customer,
+		OperatorBalance:        operatorBalance.Text('f', 6),
+		BeneficiaryEthBalance:  beneficiaryEthBalance.Text('f', 6),
+		BeneficiaryKeepBalance: beneficiaryKeepBalance.Text('f', 6),
+		AccumulatedRewards:     accumulatedRewards.Text('f', 6),
+		FromBlock:              fromBlock,
+		ToBlock:                toBlock,
+		Transactions:           transactions,
 	}
 
 	return &EcdsaReport{

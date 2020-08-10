@@ -134,7 +134,12 @@ func (brg *BeaconReportGenerator) Generate(
 		return nil, err
 	}
 
-	beneficiaryBalance, err := brg.dataSource.EthBalance(customer.Beneficiary)
+	beneficiaryEthBalance, err := brg.dataSource.EthBalance(customer.Beneficiary)
+	if err != nil {
+		return nil, err
+	}
+
+	beneficiaryKeepBalance, err := brg.dataSource.KeepBalance(customer.Beneficiary)
 	if err != nil {
 		return nil, err
 	}
@@ -155,13 +160,14 @@ func (brg *BeaconReportGenerator) Generate(
 	}
 
 	baseReport := &Report{
-		Customer:           customer,
-		OperatorBalance:    operatorBalance.Text('f', 6),
-		BeneficiaryBalance: beneficiaryBalance.Text('f', 6),
-		AccumulatedRewards: accumulatedRewards.Text('f', 6),
-		FromBlock:          fromBlock,
-		ToBlock:            toBlock,
-		Transactions:       transactions,
+		Customer:               customer,
+		OperatorBalance:        operatorBalance.Text('f', 6),
+		BeneficiaryEthBalance:  beneficiaryEthBalance.Text('f', 6),
+		BeneficiaryKeepBalance: beneficiaryKeepBalance.Text('f', 6),
+		AccumulatedRewards:     accumulatedRewards.Text('f', 6),
+		FromBlock:              fromBlock,
+		ToBlock:                toBlock,
+		Transactions:           transactions,
 	}
 
 	return &BeaconReport{

@@ -29,6 +29,7 @@ var methodLookupAbiStrings = []string{
 
 type EthereumClient struct {
 	client              *ethclient.Client
+	keepToken           *coreabi.KeepTokenCaller
 	operatorContract    *coreabi.KeepRandomBeaconOperatorCaller
 	keepFactoryContract *ecdsaabi.BondedECDSAKeepFactoryCaller
 	methodLookupAbiList []abi.ABI
@@ -36,10 +37,19 @@ type EthereumClient struct {
 
 func NewEthereumClient(
 	url string,
+	keepTokenAddress string,
 	operatorContractAddress string,
 	keepFactoryContractAddress string,
 ) (*EthereumClient, error) {
 	client, err := ethclient.Dial(url)
+	if err != nil {
+		return nil, err
+	}
+
+	keepToken, err := coreabi.NewKeepTokenCaller(
+		common.HexToAddress(keepTokenAddress),
+		client,
+	)
 	if err != nil {
 		return nil, err
 	}
@@ -72,10 +82,21 @@ func NewEthereumClient(
 
 	return &EthereumClient{
 		client:              client,
+		keepToken:           keepToken,
 		operatorContract:    operatorContract,
 		keepFactoryContract: keepFactoryContract,
 		methodLookupAbiList: methodLookupAbiList,
 	}, nil
+}
+
+func (ec *EthereumClient) KeepBalance(address string) (*big.Float, error) {
+	keepBalance, err := ec.keepToken.BalanceOf(nil, common.HexToAddress(address))
+	if err != nil {
+		return nil, err
+	}
+
+	// it's not ETH but KEEP ERC-20 uses the same number of decimals
+	return WeiToEth(keepBalance), nil
 }
 
 func (ec *EthereumClient) EthBalance(address string) (*big.Float, error) {

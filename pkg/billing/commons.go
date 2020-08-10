@@ -17,8 +17,9 @@ type Customer struct {
 type Report struct {
 	Customer *Customer
 
-	OperatorBalance    string
-	BeneficiaryBalance string
+	OperatorBalance        string
+	BeneficiaryEthBalance  string
+	BeneficiaryKeepBalance string
 
 	AccumulatedRewards string
 
@@ -29,6 +30,7 @@ type Report struct {
 
 type DataSource interface {
 	EthBalance(address string) (*big.Float, error)
+	KeepBalance(address string) (*big.Float, error)
 	OutboundTransactions(
 		address string,
 		fromBlock, toBlock int64,
