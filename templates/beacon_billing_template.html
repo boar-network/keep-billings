@@ -92,6 +92,10 @@
                 <td>The total number of your members in currently active groups</td>
                 <td>{{ .ActiveGroupsMembersCount }}</td>
             </tr>
+            <tr>
+                <td>The total number of your members in no longer active groups</td>
+                <td>{{ .InactiveGroupsMembersCount }}</td>
+            </tr>
         </table>
 
         <p>Groups and your members:</p>
@@ -101,7 +105,7 @@
                 <th>Group</th>
                 <th>Members</th>
             </tr>
-            {{ range $group, $operatorMembers := .GroupsSummary }}
+            {{ range $group, $operatorMembers := .ActiveGroupsSummary }}
                 <tr>
                     <td>{{ $group }}</td>
                     <td>{{ $operatorMembers }}</td>

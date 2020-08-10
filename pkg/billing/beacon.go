@@ -13,9 +13,10 @@ import (
 type BeaconReport struct {
 	*Report
 
-	ActiveGroupsCount        int
-	ActiveGroupsMembersCount int
-	GroupsSummary            map[string]string
+	ActiveGroupsCount          int
+	ActiveGroupsMembersCount   int
+	ActiveGroupsSummary        map[string]string
+	InactiveGroupsMembersCount int
 }
 
 type BeaconDataSource interface {
@@ -31,6 +32,7 @@ type BeaconDataSource interface {
 
 type group struct {
 	index     int64
+	isActive  bool
 	publicKey []byte
 	members   map[int]string
 }
@@ -91,9 +93,9 @@ func (brg *BeaconReportGenerator) fetchGroupsData() ([]*group, error) {
 	//
 	// The new version of keep random beacon operator contract has
 	// getNumberOfCreatedGroups function.
-	for i := int64(0); i < activeGroupsCount; i++ {
-		index := firstActiveGroupIndex + i
+	numberOfAllGroups := firstActiveGroupIndex + activeGroupsCount
 
+	for index := int64(0); index < numberOfAllGroups; index++ {
 		publicKey, err := brg.dataSource.GroupPublicKey(index)
 		if err != nil {
 			return nil, fmt.Errorf(
@@ -112,10 +114,16 @@ func (brg *BeaconReportGenerator) fetchGroupsData() ([]*group, error) {
 			)
 		}
 
+		isActive := false
+		if index >= firstActiveGroupIndex {
+			isActive = true
+		}
+
 		groups = append(
 			groups,
 			&group{
 				index:     index,
+				isActive:  isActive,
 				publicKey: publicKey,
 				members:   members,
 			},
@@ -170,11 +178,16 @@ func (brg *BeaconReportGenerator) Generate(
 		Transactions:           transactions,
 	}
 
+	inactiveGroupsMemberCount, activeGroupsSummary := brg.summarizeGroupsInfo(
+		customer.Operator,
+	)
+
 	return &BeaconReport{
-		Report:                   baseReport,
-		ActiveGroupsCount:        len(brg.groups),
-		ActiveGroupsMembersCount: brg.countActiveGroupsMembers(customer.Operator),
-		GroupsSummary:            brg.prepareGroupsSummary(customer.Operator),
+		Report:                     baseReport,
+		ActiveGroupsCount:          len(brg.groups),
+		ActiveGroupsMembersCount:   brg.countActiveGroupsMembers(customer.Operator),
+		ActiveGroupsSummary:        activeGroupsSummary,
+		InactiveGroupsMembersCount: inactiveGroupsMemberCount,
 	}, nil
 }
 
@@ -205,10 +218,11 @@ func countActiveGroupMembers(
 	return count
 }
 
-func (brg *BeaconReportGenerator) prepareGroupsSummary(
+func (brg *BeaconReportGenerator) summarizeGroupsInfo(
 	operator string,
-) map[string]string {
-	groupsSummary := make(map[string]string)
+) (int, map[string]string) {
+	inactiveGroupsMemberCount := 0
+	activeGroupsSummary := make(map[string]string)
 
 	operatorAddress := strings.ToLower(operator)
 
@@ -219,6 +233,11 @@ func (brg *BeaconReportGenerator) prepareGroupsSummary(
 			if operatorAddress == strings.ToLower(memberAddress) {
 				operatorMembers = append(operatorMembers, memberIndex)
 			}
+		}
+
+		if !group.isActive {
+			inactiveGroupsMemberCount += len(operatorMembers)
+			continue
 		}
 
 		sort.Ints(operatorMembers)
@@ -237,10 +256,10 @@ func (brg *BeaconReportGenerator) prepareGroupsSummary(
 
 		group := "0x" + hex.EncodeToString(group.publicKey)[:32] + "..."
 
-		groupsSummary[group] = operatorMembersString
+		activeGroupsSummary[group] = operatorMembersString
 	}
 
-	return groupsSummary
+	return inactiveGroupsMemberCount, activeGroupsSummary
 }
 
 func (brg *BeaconReportGenerator) calculateAccumulatedRewards(
