@@ -74,6 +74,7 @@ func GenerateBillings(c *cli.Context) error {
 	ethereumClient, err := chain.NewEthereumClient(
 		config.Ethereum.URL,
 		config.Ethereum.KeepToken,
+		config.Ethereum.TokenStaking,
 		config.Ethereum.KeepRandomBeaconOperator,
 		config.Ethereum.BondedECDSAKeepFactory,
 	)

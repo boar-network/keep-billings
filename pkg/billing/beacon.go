@@ -137,6 +137,11 @@ func (brg *BeaconReportGenerator) Generate(
 	customer *Customer,
 	fromBlock, toBlock int64,
 ) (*BeaconReport, error) {
+	stake, err := brg.dataSource.Stake(customer.Operator)
+	if err != nil {
+		return nil, err
+	}
+
 	operatorBalance, err := brg.dataSource.EthBalance(customer.Operator)
 	if err != nil {
 		return nil, err
@@ -169,6 +174,7 @@ func (brg *BeaconReportGenerator) Generate(
 
 	baseReport := &Report{
 		Customer:               customer,
+		Stake:                  stake.Text('f', 0),
 		OperatorBalance:        operatorBalance.Text('f', 6),
 		BeneficiaryEthBalance:  beneficiaryEthBalance.Text('f', 6),
 		BeneficiaryKeepBalance: beneficiaryKeepBalance.Text('f', 6),

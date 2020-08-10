@@ -17,6 +17,7 @@ type Customer struct {
 type Report struct {
 	Customer *Customer
 
+	Stake                  string
 	OperatorBalance        string
 	BeneficiaryEthBalance  string
 	BeneficiaryKeepBalance string
@@ -30,6 +31,7 @@ type Report struct {
 
 type DataSource interface {
 	EthBalance(address string) (*big.Float, error)
+	Stake(address string) (*big.Float, error)
 	KeepBalance(address string) (*big.Float, error)
 	OutboundTransactions(
 		address string,

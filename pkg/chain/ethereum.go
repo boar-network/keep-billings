@@ -30,6 +30,7 @@ var methodLookupAbiStrings = []string{
 type EthereumClient struct {
 	client              *ethclient.Client
 	keepToken           *coreabi.KeepTokenCaller
+	tokenStaking        *coreabi.TokenStakingCaller
 	operatorContract    *coreabi.KeepRandomBeaconOperatorCaller
 	keepFactoryContract *ecdsaabi.BondedECDSAKeepFactoryCaller
 	methodLookupAbiList []abi.ABI
@@ -38,6 +39,7 @@ type EthereumClient struct {
 func NewEthereumClient(
 	url string,
 	keepTokenAddress string,
+	tokenStakingAddress string,
 	operatorContractAddress string,
 	keepFactoryContractAddress string,
 ) (*EthereumClient, error) {
@@ -48,6 +50,14 @@ func NewEthereumClient(
 
 	keepToken, err := coreabi.NewKeepTokenCaller(
 		common.HexToAddress(keepTokenAddress),
+		client,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	tokenStaking, err := coreabi.NewTokenStakingCaller(
+		common.HexToAddress(tokenStakingAddress),
 		client,
 	)
 	if err != nil {
@@ -83,6 +93,7 @@ func NewEthereumClient(
 	return &EthereumClient{
 		client:              client,
 		keepToken:           keepToken,
+		tokenStaking:        tokenStaking,
 		operatorContract:    operatorContract,
 		keepFactoryContract: keepFactoryContract,
 		methodLookupAbiList: methodLookupAbiList,
@@ -90,13 +101,13 @@ func NewEthereumClient(
 }
 
 func (ec *EthereumClient) KeepBalance(address string) (*big.Float, error) {
-	keepBalance, err := ec.keepToken.BalanceOf(nil, common.HexToAddress(address))
+	balance, err := ec.keepToken.BalanceOf(nil, common.HexToAddress(address))
 	if err != nil {
 		return nil, err
 	}
 
 	// it's not ETH but KEEP ERC-20 uses the same number of decimals
-	return WeiToEth(keepBalance), nil
+	return WeiToEth(balance), nil
 }
 
 func (ec *EthereumClient) EthBalance(address string) (*big.Float, error) {
@@ -110,6 +121,16 @@ func (ec *EthereumClient) EthBalance(address string) (*big.Float, error) {
 	}
 
 	return WeiToEth(weiBalance), nil
+}
+
+func (ec *EthereumClient) Stake(address string) (*big.Float, error) {
+	stake, err := ec.tokenStaking.BalanceOf(nil, common.HexToAddress(address))
+	if err != nil {
+		return nil, err
+	}
+
+	// it's not ETH but KEEP ERC-20 uses the same number of decimals
+	return WeiToEth(stake), nil
 }
 
 func (ec *EthereumClient) OutboundTransactions(

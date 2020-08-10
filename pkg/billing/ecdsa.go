@@ -100,6 +100,11 @@ func (erg *EcdsaReportGenerator) Generate(
 	customer *Customer,
 	fromBlock, toBlock int64,
 ) (*EcdsaReport, error) {
+	stake, err := erg.dataSource.Stake(customer.Operator)
+	if err != nil {
+		return nil, err
+	}
+
 	operatorBalance, err := erg.dataSource.EthBalance(customer.Operator)
 	if err != nil {
 		return nil, err
@@ -132,6 +137,7 @@ func (erg *EcdsaReportGenerator) Generate(
 
 	baseReport := &Report{
 		Customer:               customer,
+		Stake:                  stake.Text('f', 0),
 		OperatorBalance:        operatorBalance.Text('f', 6),
 		BeneficiaryEthBalance:  beneficiaryEthBalance.Text('f', 6),
 		BeneficiaryKeepBalance: beneficiaryKeepBalance.Text('f', 6),

@@ -21,6 +21,7 @@ type Billings struct {
 type Ethereum struct {
 	URL                      string
 	KeepToken                string
+	TokenStaking             string
 	KeepRandomBeaconOperator string
 	BondedECDSAKeepFactory   string
 }
