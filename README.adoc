@@ -1,0 +1,52 @@
+= Billing Reports
+
+This repository contains tooling for generating KEEP staker billing reports.
+
+== Installation
+
+To install, first clone this repository on your machine:
+```
+git clone git@github.com:boar-network/keep-billings.git
+```
+
+Then, make sure you have the following tools on your machine:
+
+- Go 1.13
+- Node v11.15.0
+- Solc 0.5.17
+- go-ethereum 1.9.10 (abigen is needed)
+- https://wkhtmltopdf.org/downloads.html[wkhtmltopdf] 0.12.6
+
+If so, you can run the installation script by doing:
+
+```
+./scripts/install.sh
+```
+
+A binary named `keep-billings` should be created.
+
+== Configuration
+
+To generate a report, you should provide a TOML file with basic
+configuration properties. An example of such config is defined in:
+```
+./configs/config.toml.SAMPLE
+```
+
+The default config file location is `./configs/config.toml` but it can be
+overwritten with `--config` flag.
+
+The config TOML file contains `CustomersFile`
+property which should point to a file containing the JSON with customer's
+input data. You can find an example of this file in:
+```
+./configs/customers.json.SAMPLE
+```
+
+== Usage
+
+You can generate billing reports by doing:
+```
+./keep-billings generate --from-block 100 --to-block 200
+```
+Run this command with `-h` flag to see all available options.

@@ -1,0 +1,138 @@
+<html>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            table-layout: fixed;
+        }
+
+        table, th, tr, td {
+            border: 1px solid gray;
+        }
+
+        th, td {
+            padding: 15px;
+            text-align: left;
+            word-wrap: break-word
+        }
+
+        .block-number {
+            width: 15%;
+        }
+        .transaction-hash {
+            width: 35%;
+        }
+        .transaction-fee {
+            width: 30%;
+        }
+        .operation {
+            width: 20%;
+        }
+    </style>
+
+    <body>
+        <h1 style="text-align: center">Random Beacon Billing - {{ .Customer.Name }}</h1>
+        <p style="text-align: center">Generated with 
+            <a href="https://github.com/boar-network/keep-billings/">
+              boar.network billing tool
+            </a>
+        </p>
+
+        <h2>Customer</h2>
+        <table>
+            <tr>
+                <td>Name</td>
+                <td>{{ .Customer.Name }}</td>
+            </tr>
+            <tr>
+                <td>Stake</td>
+                <td>{{ .Stake }} KEEP</td>
+            </tr>
+            <tr>
+                <td>Operator account</td>
+                <td>{{ .Customer.Operator }}</td>
+            </tr>
+            <tr>
+                <td>Beneficiary account</td>
+                <td>{{ .Customer.Beneficiary }}</td>
+            </tr>
+            <tr>
+                <td>Customer net rewards share %</td>
+                <td>{{ .Customer.CustomerSharePercentage }}</td>
+            </tr>
+        </table>
+
+        <h2>Accounts balances</h2>
+        <table>
+            <tr>
+                <td>Operator account ETH balance</td>
+                <td>{{ .OperatorBalance }} ETH</td>
+            </tr>
+            <tr>
+                <td>Beneficiary account ETH balance</td>
+                <td>{{ .BeneficiaryEthBalance }} ETH</td>
+            </tr>
+            <tr>
+                <td>Beneficiary account KEEP balance</td>
+                <td>{{ .BeneficiaryKeepBalance }} KEEP</td>
+            </tr>
+        </table>
+
+        <h2>Rewards</h2>
+        <table>
+            <tr>
+                <td>Accumulated, not yet withdrawn ETH rewards and operator reimbursements</td>
+                <td>{{ .AccumulatedRewards }} ETH</td>
+            </tr>
+        </table>
+
+        <h2>Groups</h2>
+        <table>
+            <tr>
+                <td>The number of currently active beacon groups in the network</td>
+                <td>{{ .ActiveGroupsCount }}</td>
+            </tr>
+            <tr>
+                <td>The total number of your members in currently active groups</td>
+                <td>{{ .ActiveGroupsMembersCount }}</td>
+            </tr>
+            <tr>
+                <td>The total number of your members in no longer active groups</td>
+                <td>{{ .InactiveGroupsMembersCount }}</td>
+            </tr>
+        </table>
+
+        <p>Groups and your members:</p>
+
+        <table>
+            <tr>
+                <th>Group</th>
+                <th>Members</th>
+            </tr>
+            {{ range $group, $operatorMembers := .ActiveGroupsSummary }}
+                <tr>
+                    <td>{{ $group }}</td>
+                    <td>{{ $operatorMembers }}</td>
+                </tr>
+            {{ end }}
+        </table>
+
+        <h2>Operator account billing (block {{ .FromBlock}} - block {{ .ToBlock }})</h2>
+        <table>
+            <tr>
+                <th class="block-number">Block number</th>
+                <th class="transaction-hash">Transaction hash</th>
+                <th class="transaction-fee">Transaction fee</th>
+                <th class="operation">Operation</th>
+            </tr>
+            {{ range .Transactions }}
+                <tr>
+                    <td>{{ .Block }}</td>
+                    <td>{{ .Hash }}</td>
+                    <td>{{ .Fee }} Gwei ({{ .Gas }} gas)</td>
+                    <td>{{ .Operation }}</td>
+                </tr>
+            {{ end }}
+        </table>
+    </body>
+</html>

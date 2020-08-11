@@ -8,6 +8,12 @@
 .vscode/
 
 ### Miscellaneous ###
-reports
+keep-billings
 generated-billings
+gen
+temporary
+
+### Config files ###
+configs/*
+!configs/*.SAMPLE
 

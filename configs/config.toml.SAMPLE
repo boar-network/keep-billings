@@ -1,0 +1,13 @@
+[Billings]
+    CustomersFile = "./configs/customers.json"
+    TargetDirectory = "./generated-billings"
+    BeaconTemplateFile = "./templates/beacon_billing_template.html"
+    EcdsaTemplateFile = "./templates/ecdsa_billing_template.html"
+
+[Ethereum]
+    URL = "http://127.0.0.1:8545"
+    KeepToken = "0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA"
+    TbtcToken = "0xBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB"
+    TokenStaking = "0xCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC"
+    KeepRandomBeaconOperator = "0xDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDD"
+    BondedECDSAKeepFactory = "0xEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE"
