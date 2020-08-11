@@ -21,6 +21,7 @@ type Report struct {
 	OperatorBalance        string
 	BeneficiaryEthBalance  string
 	BeneficiaryKeepBalance string
+	BeneficiaryTbtcBalance string
 
 	AccumulatedRewards string
 
@@ -33,6 +34,7 @@ type DataSource interface {
 	EthBalance(address string) (*big.Float, error)
 	Stake(address string) (*big.Float, error)
 	KeepBalance(address string) (*big.Float, error)
+	TbtcBalance(address string) (*big.Float, error)
 	OutboundTransactions(
 		address string,
 		fromBlock, toBlock int64,

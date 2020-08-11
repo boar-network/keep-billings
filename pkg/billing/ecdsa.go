@@ -144,6 +144,11 @@ func (erg *EcdsaReportGenerator) Generate(
 		return nil, err
 	}
 
+	beneficiaryTbtcBalance, err := erg.dataSource.TbtcBalance(customer.Beneficiary)
+	if err != nil {
+		return nil, err
+	}
+
 	accumulatedRewards, err := erg.calculateAccumulatedRewards(customer.Operator)
 	if err != nil {
 		return nil, err
@@ -165,6 +170,7 @@ func (erg *EcdsaReportGenerator) Generate(
 		OperatorBalance:        operatorBalance.Text('f', 6),
 		BeneficiaryEthBalance:  beneficiaryEthBalance.Text('f', 6),
 		BeneficiaryKeepBalance: beneficiaryKeepBalance.Text('f', 6),
+		BeneficiaryTbtcBalance: beneficiaryTbtcBalance.Text('f', 6),
 		AccumulatedRewards:     accumulatedRewards.Text('f', 6),
 		FromBlock:              fromBlock,
 		ToBlock:                toBlock,

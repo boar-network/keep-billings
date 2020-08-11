@@ -18,6 +18,7 @@ if [ -d "$WORKDIR/temporary" ]; then rm -rf "$WORKDIR/temporary"; fi
 
 mkdir -p "$WORKDIR/pkg/chain/gen/core/abi"
 mkdir -p "$WORKDIR/pkg/chain/gen/ecdsa/abi"
+mkdir -p "$WORKDIR/pkg/chain/gen/erc20/abi"
 mkdir -p "$WORKDIR/temporary"
 
 printf "${DONE_START}Directories have been organized successfully!${DONE_END}"
@@ -57,6 +58,17 @@ cd "$WORKDIR"
 cp -a "$WORKDIR/temporary/keep-ecdsa/pkg/chain/gen/abi/." "$WORKDIR/pkg/chain/gen/ecdsa/abi"
 
 printf "${DONE_START}keep-ecdsa contracts ABI have been installed successfully!${DONE_END}"
+
+# Create ERC20 abi
+
+printf "${LOG_START}Generating ERC20 contract ABI...${LOG_END}"
+
+cd "$WORKDIR"
+
+solc --abi solidity/ERC20.sol -o "$WORKDIR/pkg/chain/gen/erc20/abi"
+abigen --abi="$WORKDIR/pkg/chain/gen/erc20/abi/ERC20.abi" --pkg=token --out="$WORKDIR/pkg/chain/gen/erc20/abi/ERC20.go"
+
+printf "${DONE_START}ERC20 contract ABI have been created successfully!${DONE_END}"
 
 # Cleanup temporary data.
 

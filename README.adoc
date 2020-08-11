@@ -13,6 +13,7 @@ Then, make sure you have the following tools on your machine:
 
 - Go 1.13
 - Node v11.15.0
+- Solc 0.5.17
 - go-ethereum 1.9.10 (abigen is needed)
 - https://wkhtmltopdf.org/downloads.html[wkhtmltopdf] 0.12.6
 

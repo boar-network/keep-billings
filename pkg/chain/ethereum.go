@@ -11,6 +11,7 @@ import (
 
 	coreabi "github.com/boar-network/keep-billings/pkg/chain/gen/core/abi"
 	ecdsaabi "github.com/boar-network/keep-billings/pkg/chain/gen/ecdsa/abi"
+	erc20abi "github.com/boar-network/keep-billings/pkg/chain/gen/erc20/abi"
 	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
@@ -29,7 +30,8 @@ var methodLookupAbiStrings = []string{
 
 type EthereumClient struct {
 	client              *ethclient.Client
-	keepToken           *coreabi.KeepTokenCaller
+	keepToken           *erc20abi.TokenCaller
+	tbtcToken           *erc20abi.TokenCaller
 	tokenStaking        *coreabi.TokenStakingCaller
 	operatorContract    *coreabi.KeepRandomBeaconOperatorCaller
 	keepFactoryContract *ecdsaabi.BondedECDSAKeepFactoryCaller
@@ -39,6 +41,7 @@ type EthereumClient struct {
 func NewEthereumClient(
 	url string,
 	keepTokenAddress string,
+	tbtcTokenAddress string,
 	tokenStakingAddress string,
 	operatorContractAddress string,
 	keepFactoryContractAddress string,
@@ -48,8 +51,16 @@ func NewEthereumClient(
 		return nil, err
 	}
 
-	keepToken, err := coreabi.NewKeepTokenCaller(
+	keepToken, err := erc20abi.NewTokenCaller(
 		common.HexToAddress(keepTokenAddress),
+		client,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	tbtcToken, err := erc20abi.NewTokenCaller(
+		common.HexToAddress(tbtcTokenAddress),
 		client,
 	)
 	if err != nil {
@@ -93,6 +104,7 @@ func NewEthereumClient(
 	return &EthereumClient{
 		client:              client,
 		keepToken:           keepToken,
+		tbtcToken:           tbtcToken,
 		tokenStaking:        tokenStaking,
 		operatorContract:    operatorContract,
 		keepFactoryContract: keepFactoryContract,
@@ -107,6 +119,16 @@ func (ec *EthereumClient) KeepBalance(address string) (*big.Float, error) {
 	}
 
 	// it's not ETH but KEEP ERC-20 uses the same number of decimals
+	return WeiToEth(balance), nil
+}
+
+func (ec *EthereumClient) TbtcBalance(address string) (*big.Float, error) {
+	balance, err := ec.tbtcToken.BalanceOf(nil, common.HexToAddress(address))
+	if err != nil {
+		return nil, err
+	}
+
+	// it's not ETH but tBTC ERC-20 uses the same number of decimals
 	return WeiToEth(balance), nil
 }
 
