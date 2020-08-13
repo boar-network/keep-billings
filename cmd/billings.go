@@ -92,11 +92,17 @@ func GenerateBillings(c *cli.Context) error {
 		return err
 	}
 
+	if toBlock < fromBlock {
+		return fmt.Errorf("toBlock can not be smaller than fromBlock")
+	}
+
+	blocks := ethereumClient.GetBlocks(fromBlock, toBlock)
+
 	generateBillings(
 		customers.Beacon,
 		beaconReportGenerator.FetchCommonData,
 		func(customer *billing.Customer) (interface{}, error) {
-			return beaconReportGenerator.Generate(customer, fromBlock, toBlock)
+			return beaconReportGenerator.Generate(customer, blocks)
 		},
 		beaconPdfExporter,
 		config.Billings.TargetDirectory+"/%v_Beacon_Billing.pdf",
@@ -115,7 +121,7 @@ func GenerateBillings(c *cli.Context) error {
 		customers.Ecdsa,
 		ecdsaReportGenerator.FetchCommonData,
 		func(customer *billing.Customer) (interface{}, error) {
-			return ecdsaReportGenerator.Generate(customer, fromBlock, toBlock)
+			return ecdsaReportGenerator.Generate(customer, blocks)
 		},
 		ecdsaPdfExporter,
 		config.Billings.TargetDirectory+"/%v_ECDSA_Billing.pdf",

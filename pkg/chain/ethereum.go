@@ -3,17 +3,16 @@ package chain
 import (
 	"bytes"
 	"context"
-	"fmt"
 	"math"
 	"math/big"
 	"strings"
+	"time"
 
 	"github.com/ipfs/go-log"
 
 	coreabi "github.com/boar-network/keep-billings/pkg/chain/gen/core/abi"
 	ecdsaabi "github.com/boar-network/keep-billings/pkg/chain/gen/ecdsa/abi"
 	erc20abi "github.com/boar-network/keep-billings/pkg/chain/gen/erc20/abi"
-	"github.com/ethereum/go-ethereum"
 	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/core/types"
@@ -158,39 +157,44 @@ func (ec *EthereumClient) Stake(address string) (*big.Float, error) {
 	return WeiToEth(stake), nil
 }
 
-func (ec *EthereumClient) OutboundTransactions(
-	address string,
-	fromBlock, toBlock int64,
-) (map[int64][]string, error) {
+func (ec *EthereumClient) GetBlocks(fromBlock, toBlock int64) []*types.Block {
+	logger.Infof("getting blocks from [%v] to [%v]", fromBlock, toBlock)
 	ctx := context.TODO()
 
-	if fromBlock > toBlock {
-		return nil, fmt.Errorf(
-			"fromBlock could not be smaller than toBlock",
-		)
-	}
-
-	addressFromHex := common.HexToAddress(address)
-
-	chainID, err := ec.client.NetworkID(ctx)
-	if err != nil {
-		logger.Fatal(err)
-	}
-
-	blocksTransactions := make(map[int64][]string)
+	var blocks []*types.Block
 
 	for blockNumber := fromBlock; blockNumber <= toBlock; blockNumber++ {
 		progress := math.Floor((float64(blockNumber-fromBlock) / float64(toBlock-fromBlock)) * 100)
 		logger.Infof("[%.0f%%] getting block [%v]", progress, blockNumber)
-		block, err := ec.client.BlockByNumber(ctx, big.NewInt(blockNumber))
-		if err != nil {
-			if err == ethereum.NotFound {
+
+		for {
+			block, err := ec.client.BlockByNumber(ctx, big.NewInt(blockNumber))
+			if err == nil {
+				blocks = append(blocks, block)
 				break
 			}
 
-			return nil, err
+			logger.Errorf("could not get block [%v]: [%v]; retrying after 60sec", blockNumber, err)
+			time.Sleep(60 * time.Second)
 		}
+	}
 
+	return blocks
+}
+
+func (ec *EthereumClient) OutboundTransactions(
+	address string,
+	blocks []*types.Block,
+) (map[int64][]string, error) {
+	addressFromHex := common.HexToAddress(address)
+	blocksTransactions := make(map[int64][]string)
+
+	chainID, err := ec.client.NetworkID(context.TODO())
+	if err != nil {
+		return nil, err
+	}
+
+	for _, block := range blocks {
 		transactions := make([]string, 0)
 
 		for _, transaction := range block.Transactions() {
@@ -207,7 +211,7 @@ func (ec *EthereumClient) OutboundTransactions(
 			transactions = append(transactions, transaction.Hash().Hex())
 		}
 
-		blocksTransactions[blockNumber] = transactions
+		blocksTransactions[block.Number().Int64()] = transactions
 	}
 
 	return blocksTransactions, nil

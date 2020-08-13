@@ -4,6 +4,7 @@ import (
 	"math/big"
 	"sort"
 
+	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ipfs/go-log"
 
 	"github.com/boar-network/keep-billings/pkg/chain"
@@ -29,8 +30,8 @@ type Report struct {
 
 	AccumulatedRewards string
 
-	FromBlock    int64
-	ToBlock      int64
+	FromBlock    uint64
+	ToBlock      uint64
 	Transactions []*Transaction
 }
 
@@ -41,7 +42,7 @@ type DataSource interface {
 	TbtcBalance(address string) (*big.Float, error)
 	OutboundTransactions(
 		address string,
-		fromBlock, toBlock int64,
+		blocks []*types.Block,
 	) (map[int64][]string, error)
 	TransactionGasPrice(hash string) (*big.Int, error)
 	TransactionGasUsed(hash string) (*big.Int, error)
@@ -72,24 +73,21 @@ func (bb byBlock) Less(i, j int) bool {
 
 func outboundTransactions(
 	address string,
-	fromBlock, toBlock int64,
+	blocks []*types.Block,
 	dataSource DataSource,
 ) ([]*Transaction, error) {
 	logger.Infof(
-		"getting outbound transactions for address [%v] from block [%v] to block [%v]",
+		"filtering out outbound transactions for address [%v]",
 		address,
-		fromBlock,
-		toBlock,
 	)
 	blocksTransactions, err := dataSource.OutboundTransactions(
 		address,
-		fromBlock,
-		toBlock,
+		blocks,
 	)
 	if err != nil {
 		return nil, err
 	}
-	logger.Infof("outbound transactions received")
+	logger.Infof("outbound transactions filtered out")
 
 	transactions := make([]*Transaction, 0)
 

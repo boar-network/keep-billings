@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/boar-network/keep-billings/pkg/chain"
+	"github.com/ethereum/go-ethereum/core/types"
 )
 
 type BeaconReport struct {
@@ -135,7 +136,7 @@ func (brg *BeaconReportGenerator) fetchGroupsData() ([]*group, error) {
 
 func (brg *BeaconReportGenerator) Generate(
 	customer *Customer,
-	fromBlock, toBlock int64,
+	blocks []*types.Block,
 ) (*BeaconReport, error) {
 	stake, err := brg.dataSource.Stake(customer.Operator)
 	if err != nil {
@@ -164,8 +165,7 @@ func (brg *BeaconReportGenerator) Generate(
 
 	transactions, err := outboundTransactions(
 		customer.Operator,
-		fromBlock,
-		toBlock,
+		blocks,
 		brg.dataSource,
 	)
 	if err != nil {
@@ -179,8 +179,8 @@ func (brg *BeaconReportGenerator) Generate(
 		BeneficiaryEthBalance:  beneficiaryEthBalance.Text('f', 6),
 		BeneficiaryKeepBalance: beneficiaryKeepBalance.Text('f', 6),
 		AccumulatedRewards:     accumulatedRewards.Text('f', 6),
-		FromBlock:              fromBlock,
-		ToBlock:                toBlock,
+		FromBlock:              blocks[0].NumberU64(),
+		ToBlock:                blocks[len(blocks)-1].NumberU64(),
 		Transactions:           transactions,
 	}
 
