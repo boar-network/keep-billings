@@ -161,6 +161,8 @@ func (ec *EthereumClient) GetBlocks(fromBlock, toBlock int64) []*types.Block {
 	logger.Infof("getting blocks from [%v] to [%v]", fromBlock, toBlock)
 	ctx := context.TODO()
 
+	const retryDelay = 60 * time.Second
+
 	var blocks []*types.Block
 
 	for blockNumber := fromBlock; blockNumber <= toBlock; blockNumber++ {
@@ -174,8 +176,13 @@ func (ec *EthereumClient) GetBlocks(fromBlock, toBlock int64) []*types.Block {
 				break
 			}
 
-			logger.Errorf("could not get block [%v]: [%v]; retrying after 60sec", blockNumber, err)
-			time.Sleep(60 * time.Second)
+			logger.Errorf(
+				"could not get block [%v]: [%v]; retrying after [%v]",
+				blockNumber,
+				err,
+				retryDelay,
+			)
+			time.Sleep(retryDelay)
 		}
 	}
 
