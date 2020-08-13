@@ -4,7 +4,6 @@ import (
 	"math/big"
 	"sort"
 
-	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ipfs/go-log"
 
 	"github.com/boar-network/keep-billings/pkg/chain"
@@ -40,13 +39,15 @@ type DataSource interface {
 	Stake(address string) (*big.Float, error)
 	KeepBalance(address string) (*big.Float, error)
 	TbtcBalance(address string) (*big.Float, error)
-	OutboundTransactions(
-		address string,
-		blocks []*types.Block,
-	) (map[int64][]string, error)
 	TransactionGasPrice(hash string) (*big.Int, error)
 	TransactionGasUsed(hash string) (*big.Int, error)
 	TransactionMethod(hash string) (string, error)
+}
+
+type CachedBlocks interface {
+	FirstBlockNumber() uint64
+	LastBlockNumber() uint64
+	FilterOutboundTransactions(address string) (map[int64][]string, error)
 }
 
 type Transaction struct {
@@ -73,17 +74,14 @@ func (bb byBlock) Less(i, j int) bool {
 
 func outboundTransactions(
 	address string,
-	blocks []*types.Block,
+	blocks CachedBlocks,
 	dataSource DataSource,
 ) ([]*Transaction, error) {
 	logger.Infof(
 		"filtering out outbound transactions for address [%v]",
 		address,
 	)
-	blocksTransactions, err := dataSource.OutboundTransactions(
-		address,
-		blocks,
-	)
+	blocksTransactions, err := blocks.FilterOutboundTransactions(address)
 	if err != nil {
 		return nil, err
 	}

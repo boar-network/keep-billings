@@ -157,7 +157,7 @@ func (ec *EthereumClient) Stake(address string) (*big.Float, error) {
 	return WeiToEth(stake), nil
 }
 
-func (ec *EthereumClient) GetBlocks(fromBlock, toBlock int64) []*types.Block {
+func (ec *EthereumClient) GetBlocks(fromBlock, toBlock int64) *cachedEthereumBlocks {
 	logger.Infof("getting blocks from [%v] to [%v]", fromBlock, toBlock)
 	ctx := context.TODO()
 
@@ -186,22 +186,37 @@ func (ec *EthereumClient) GetBlocks(fromBlock, toBlock int64) []*types.Block {
 		}
 	}
 
-	return blocks
+	return &cachedEthereumBlocks{
+		client: ec.client,
+		blocks: blocks,
+	}
 }
 
-func (ec *EthereumClient) OutboundTransactions(
-	address string,
-	blocks []*types.Block,
-) (map[int64][]string, error) {
-	addressFromHex := common.HexToAddress(address)
-	blocksTransactions := make(map[int64][]string)
+type cachedEthereumBlocks struct {
+	client *ethclient.Client
+	blocks []*types.Block
+}
 
-	chainID, err := ec.client.NetworkID(context.TODO())
+func (ceb *cachedEthereumBlocks) FirstBlockNumber() uint64 {
+	return ceb.blocks[0].NumberU64()
+}
+
+func (ceb *cachedEthereumBlocks) LastBlockNumber() uint64 {
+	return ceb.blocks[len(ceb.blocks)-1].NumberU64()
+}
+
+func (ceb *cachedEthereumBlocks) FilterOutboundTransactions(
+	address string,
+) (map[int64][]string, error) {
+	chainID, err := ceb.client.NetworkID(context.TODO())
 	if err != nil {
 		return nil, err
 	}
 
-	for _, block := range blocks {
+	addressFromHex := common.HexToAddress(address)
+	blocksTransactions := make(map[int64][]string)
+
+	for _, block := range ceb.blocks {
 		transactions := make([]string, 0)
 
 		for _, transaction := range block.Transactions() {

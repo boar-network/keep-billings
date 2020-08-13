@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/boar-network/keep-billings/pkg/chain"
-	"github.com/ethereum/go-ethereum/core/types"
 )
 
 type EcdsaReport struct {
@@ -123,7 +122,7 @@ func (erg *EcdsaReportGenerator) fetchKeepsData() ([]*keep, error) {
 
 func (erg *EcdsaReportGenerator) Generate(
 	customer *Customer,
-	blocks []*types.Block,
+	blocks CachedBlocks,
 ) (*EcdsaReport, error) {
 	stake, err := erg.dataSource.Stake(customer.Operator)
 	if err != nil {
@@ -172,8 +171,8 @@ func (erg *EcdsaReportGenerator) Generate(
 		BeneficiaryKeepBalance: beneficiaryKeepBalance.Text('f', 6),
 		BeneficiaryTbtcBalance: beneficiaryTbtcBalance.Text('f', 6),
 		AccumulatedRewards:     accumulatedRewards.Text('f', 6),
-		FromBlock:              blocks[0].NumberU64(),
-		ToBlock:                blocks[len(blocks)-1].NumberU64(),
+		FromBlock:              blocks.FirstBlockNumber(),
+		ToBlock:                blocks.LastBlockNumber(),
 		Transactions:           transactions,
 	}
 
