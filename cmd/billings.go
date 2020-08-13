@@ -92,10 +92,6 @@ func GenerateBillings(c *cli.Context) error {
 		return err
 	}
 
-	if toBlock < fromBlock {
-		return fmt.Errorf("toBlock can not be smaller than fromBlock")
-	}
-
 	blocks := ethereumClient.GetBlocks(fromBlock, toBlock)
 
 	generateBillings(
