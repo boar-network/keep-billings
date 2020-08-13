@@ -4,10 +4,11 @@ import (
 	"bytes"
 	"context"
 	"fmt"
-	"log"
 	"math"
 	"math/big"
 	"strings"
+
+	"github.com/ipfs/go-log"
 
 	coreabi "github.com/boar-network/keep-billings/pkg/chain/gen/core/abi"
 	ecdsaabi "github.com/boar-network/keep-billings/pkg/chain/gen/ecdsa/abi"
@@ -18,6 +19,8 @@ import (
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
 )
+
+var logger = log.Logger("billings-ethereum")
 
 var methodLookupAbiStrings = []string{
 	coreabi.TokenStakingABI,
@@ -171,12 +174,14 @@ func (ec *EthereumClient) OutboundTransactions(
 
 	chainID, err := ec.client.NetworkID(ctx)
 	if err != nil {
-		log.Fatal(err)
+		logger.Fatal(err)
 	}
 
 	blocksTransactions := make(map[int64][]string)
 
 	for blockNumber := fromBlock; blockNumber <= toBlock; blockNumber++ {
+		progress := math.Floor((float64(blockNumber-fromBlock) / float64(toBlock-fromBlock)) * 100)
+		logger.Infof("[%.0f%%] getting block [%v]", progress, blockNumber)
 		block, err := ec.client.BlockByNumber(ctx, big.NewInt(blockNumber))
 		if err != nil {
 			if err == ethereum.NotFound {

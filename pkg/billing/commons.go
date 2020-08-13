@@ -4,8 +4,12 @@ import (
 	"math/big"
 	"sort"
 
+	"github.com/ipfs/go-log"
+
 	"github.com/boar-network/keep-billings/pkg/chain"
 )
+
+var logger = log.Logger("billings-billing")
 
 type Customer struct {
 	Name                    string
@@ -71,6 +75,12 @@ func outboundTransactions(
 	fromBlock, toBlock int64,
 	dataSource DataSource,
 ) ([]*Transaction, error) {
+	logger.Infof(
+		"getting outbound transactions for address [%v] from block [%v] to block [%v]",
+		address,
+		fromBlock,
+		toBlock,
+	)
 	blocksTransactions, err := dataSource.OutboundTransactions(
 		address,
 		fromBlock,
@@ -79,6 +89,7 @@ func outboundTransactions(
 	if err != nil {
 		return nil, err
 	}
+	logger.Infof("outbound transactions received")
 
 	transactions := make([]*Transaction, 0)
 
