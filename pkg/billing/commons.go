@@ -4,8 +4,12 @@ import (
 	"math/big"
 	"sort"
 
+	"github.com/ipfs/go-log"
+
 	"github.com/boar-network/keep-billings/pkg/chain"
 )
+
+var logger = log.Logger("billings-billing")
 
 type Customer struct {
 	Name                    string
@@ -25,8 +29,8 @@ type Report struct {
 
 	AccumulatedRewards string
 
-	FromBlock    int64
-	ToBlock      int64
+	FromBlock    uint64
+	ToBlock      uint64
 	Transactions []*Transaction
 }
 
@@ -35,13 +39,15 @@ type DataSource interface {
 	Stake(address string) (*big.Float, error)
 	KeepBalance(address string) (*big.Float, error)
 	TbtcBalance(address string) (*big.Float, error)
-	OutboundTransactions(
-		address string,
-		fromBlock, toBlock int64,
-	) (map[int64][]string, error)
 	TransactionGasPrice(hash string) (*big.Int, error)
 	TransactionGasUsed(hash string) (*big.Int, error)
 	TransactionMethod(hash string) (string, error)
+}
+
+type CachedBlocks interface {
+	FirstBlockNumber() uint64
+	LastBlockNumber() uint64
+	FilterOutboundTransactions(address string) (map[int64][]string, error)
 }
 
 type Transaction struct {
@@ -68,17 +74,18 @@ func (bb byBlock) Less(i, j int) bool {
 
 func outboundTransactions(
 	address string,
-	fromBlock, toBlock int64,
+	blocks CachedBlocks,
 	dataSource DataSource,
 ) ([]*Transaction, error) {
-	blocksTransactions, err := dataSource.OutboundTransactions(
+	logger.Infof(
+		"filtering out outbound transactions for address [%v]",
 		address,
-		fromBlock,
-		toBlock,
 	)
+	blocksTransactions, err := blocks.FilterOutboundTransactions(address)
 	if err != nil {
 		return nil, err
 	}
+	logger.Infof("outbound transactions filtered out")
 
 	transactions := make([]*Transaction, 0)
 
