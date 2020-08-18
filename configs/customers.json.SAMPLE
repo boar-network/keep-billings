@@ -4,13 +4,15 @@
       "name": "Beacon Customer A",
       "operator": "0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
       "beneficiary": "0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-      "customerSharePercentage": 50
+      "customerSharePercentage": 50,
+      "initialOperatorEthBalance": 10
     },
     {
       "name": "Beacon Customer B",
       "operator": "0xBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
       "beneficiary": "0xBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
-      "customerSharePercentage": 75
+      "customerSharePercentage": 75,
+      "initialOperatorEthBalance": 10
     }
   ],
   "ecdsa": [
@@ -18,7 +20,8 @@
       "name": "ECDSA Customer A",
       "operator": "0xCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC",
       "beneficiary": "0xCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC",
-      "customerSharePercentage": 90
+      "customerSharePercentage": 90,
+      "initialOperatorEthBalance": 10
     }
   ]
 }

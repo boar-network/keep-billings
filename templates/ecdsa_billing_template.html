@@ -47,12 +47,16 @@
                 <td>Customer net rewards share %</td>
                 <td>{{ .Customer.CustomerSharePercentage }}</td>
             </tr>
+            <tr>
+                <td>Initial operator account balance (IB)</td>
+                <td>{{ .Customer.InitialOperatorEthBalance }} ETH</td>
+            </tr>
         </table>
 
         <h2>Accounts balances</h2>
         <table>
             <tr>
-                <td>Operator account ETH balance</td>
+                <td>Operator account ETH balance (OB)</td>
                 <td>{{ .OperatorBalance }} ETH</td>
             </tr>
             <tr>
@@ -74,6 +78,10 @@
             <tr>
                 <td>Accumulated, not yet withdrawn ETH rewards and operator reimbursements</td>
                 <td>{{ .AccumulatedRewards }} ETH</td>
+            </tr>
+            <tr>
+                <td>Operational ETH costs (IB - OB)</td>
+                <td>{{ .OperationalCosts }} ETH</td>
             </tr>
         </table>
 

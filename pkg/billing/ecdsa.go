@@ -154,6 +154,11 @@ func (erg *EcdsaReportGenerator) Generate(
 		return nil, err
 	}
 
+	operationalCosts := new(big.Float).Sub(
+		big.NewFloat(float64(customer.InitialOperatorEthBalance)),
+		operatorBalance,
+	)
+
 	transactions, err := outboundTransactions(
 		customer.Operator,
 		blocks,
@@ -171,6 +176,7 @@ func (erg *EcdsaReportGenerator) Generate(
 		BeneficiaryKeepBalance: beneficiaryKeepBalance.Text('f', 6),
 		BeneficiaryTbtcBalance: beneficiaryTbtcBalance.Text('f', 6),
 		AccumulatedRewards:     accumulatedRewards.Text('f', 6),
+		OperationalCosts:       operationalCosts.Text('f', 6),
 		FromBlock:              blocks.FirstBlockNumber(),
 		ToBlock:                blocks.LastBlockNumber(),
 		Transactions:           transactions,

@@ -28,20 +28,37 @@
         .operation {
             width: 20%;
         }
+
+        .label-with-legend {
+            /*text-align: left;*/
+            float: left;
+        }
+        .legend { 
+            float: right;
+            text-align: right;
+            font-style: italic;
+          /*  font-size: 80%; */
+        }
+        .final-calculation {
+            font-style: bold;
+        }
+        
     </style>
 
     <body>
-        <h1 style="text-align: center">Random Beacon Billing - {{ .Customer.Name }}</h1>
-        <p style="text-align: center">Generated with 
-            <a href="https://github.com/boar-network/keep-billings/">
-              boar.network billing tool
-            </a>
-        </p>
+        <header>
+            <h1 style="text-align: center">Random Beacon Billing - {{ .Customer.Name }}</h1>
+            <p style="text-align: center">Generated with 
+                <a href="https://github.com/boar-network/keep-billings/">
+                boar.network billing tool
+                </a>
+            </p>
+        </header>
 
         <h2>Customer</h2>
         <table>
             <tr>
-                <td>Name</td>
+                <td class="value-name">Name</td>
                 <td>{{ .Customer.Name }}</td>
             </tr>
             <tr>
@@ -57,32 +74,71 @@
                 <td>{{ .Customer.Beneficiary }}</td>
             </tr>
             <tr>
-                <td>Customer net rewards share %</td>
+                <td>
+                    <div class="label-with-legend">Customer net rewards share %</div>
+                    <div class="legend">RS</div>
+                </td>
                 <td>{{ .Customer.CustomerSharePercentage }}</td>
+            </tr>
+            <tr>
+                <td>
+                    <div class="label-with-legend">Initial operator account balance</div>
+                    <div class="legend">IB</div>
+                </td>
+                <td>{{ .Customer.InitialOperatorEthBalance }} ETH</td>
             </tr>
         </table>
 
-        <h2>Accounts balances</h2>
+        <h2>Balances</h2>
         <table>
             <tr>
-                <td>Operator account ETH balance</td>
+                <td>
+                    <div class="label-with-legend">Current operator account ETH balance</div>
+                    <div class="legend">OB</div>
+                </td>
                 <td>{{ .OperatorBalance }} ETH</td>
             </tr>
             <tr>
-                <td>Beneficiary account ETH balance</td>
+                <td>
+                    <div class="label-with-legend">Current beneficiary account ETH balance</div>
+                    <div class="legend">BB</div>
+                </td>
                 <td>{{ .BeneficiaryEthBalance }} ETH</td>
             </tr>
             <tr>
-                <td>Beneficiary account KEEP balance</td>
+                <td>Current beneficiary account KEEP balance</td>
                 <td>{{ .BeneficiaryKeepBalance }} KEEP</td>
+            </tr>
+            <tr>
+                <td>
+                    <div class="label-with-legend">Accumulated ETH rewards and reimbursements</div>
+                    <div class="legend">AR</div></td>
+                <td>{{ .AccumulatedRewards }} ETH</td>
             </tr>
         </table>
 
         <h2>Rewards</h2>
         <table>
             <tr>
-                <td>Accumulated, not yet withdrawn ETH rewards and operator reimbursements</td>
-                <td>{{ .AccumulatedRewards }} ETH</td>
+                <td>
+                    <div class="label-with-legend">Current operational ETH costs</div>
+                    <div class="legend">IB - OB</div>
+                </td>
+                <td>{{ .OperationalCosts }} ETH</td>
+            </tr>
+            <tr class="final-calculation">
+                <td>
+                    <div class="label-with-legend">Customer ETH earned</div>
+                    <div class="legend">(AR - (IB - OB)) * RS</div>
+                </td>
+                <td><b>{{ .CustomerEthEarned}} ETH</b></td>
+            </tr>
+            <tr class="final-calculation">
+                <td>
+                    <div class="label-with-legend">Provider ETH earned</div>
+                    <div class="legend">(AR - (IB - OB)) * (1 - RS)</div>
+                </td>
+                <td><b>{{ .ProviderEthEarned}} ETH</b></td>
             </tr>
         </table>
 
@@ -102,7 +158,7 @@
             </tr>
         </table>
 
-        <p>Groups and your members:</p>
+        <h2>Group members</h2>
 
         <table>
             <tr>
