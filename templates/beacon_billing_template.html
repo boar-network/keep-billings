@@ -1,47 +1,76 @@
 <html>
-    <style>
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            table-layout: fixed;
-        }
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <script src="https://twemoji.maxcdn.com/2/twemoji.min.js?11.2"></script>
+        <script>window.onload = function () { twemoji.parse(document.body);}</script>
+        <style>
+            table {
+                width: 100%;
+                border-collapse: collapse;
+                table-layout: fixed;
+            }
+    
+            table, th, tr, td {
+                border: 1px solid gray;
+            }
+    
+            th, td {
+                padding: 15px;
+                text-align: left;
+                word-wrap: break-word
+            }
+    
+            .top-header {
+                text-align: center;
+            }
+    
+            .block-number {
+                width: 15%;
+            }
+            .transaction-hash {
+                width: 35%;
+            }
+            .transaction-fee {
+                width: 30%;
+            }
+            .operation {
+                width: 20%;
+            }
+    
+            .label-with-legend {
+                float: left;
+            }
+            .legend { 
+                float: right;
+                text-align: right;
+                font-style: italic;
+                font-family: monospace;
+            }
+    
+            .final-calculation {
+                font-weight: bold;
+            }
 
-        table, th, tr, td {
-            border: 1px solid gray;
-        }
-
-        th, td {
-            padding: 15px;
-            text-align: left;
-            word-wrap: break-word
-        }
-
-        .block-number {
-            width: 15%;
-        }
-        .transaction-hash {
-            width: 35%;
-        }
-        .transaction-fee {
-            width: 30%;
-        }
-        .operation {
-            width: 20%;
-        }
-    </style>
-
+            img.emoji {
+                height: 1em;
+                 width: 1em;
+                margin: 0 .05em 0 .1em;
+                vertical-align: -0.1em;
+            }
+        </style>
+    </head>
+   
     <body>
-        <h1 style="text-align: center">Random Beacon Billing - {{ .Customer.Name }}</h1>
-        <p style="text-align: center">Generated with 
-            <a href="https://github.com/boar-network/keep-billings/">
-              boar.network billing tool
-            </a>
-        </p>
+        <header class="top-header">
+            <h1>Random Beacon Billing</h1>
+            <p>Generated with boar.network <a href="https://github.com/boar-network/keep-billings/">billing tool</a> &#128023;</p>
+            <p>Thank you for trusting us with your KEEP &hearts;</p>
+        </header>
 
-        <h2>Customer</h2>
+        <h2>Staker</h2>
         <table>
             <tr>
-                <td>Name</td>
+                <td class="value-name">Name</td>
                 <td>{{ .Customer.Name }}</td>
             </tr>
             <tr>
@@ -57,32 +86,60 @@
                 <td>{{ .Customer.Beneficiary }}</td>
             </tr>
             <tr>
-                <td>Customer net rewards share %</td>
-                <td>{{ .Customer.CustomerSharePercentage }}</td>
+                <td>
+                    <div class="label-with-legend">Staker net rewards share</div>
+                    <div class="legend">RS</div>
+                </td>
+                <td>{{ .Customer.CustomerSharePercentage }} %</td>
+            </tr>
+            <tr>
+                <td>
+                    <div class="label-with-legend">Initial operator account ETH balance</div>
+                    <div class="legend">IB</div>
+                </td>
+                <td>{{ .Customer.InitialOperatorEthBalance }} ETH</td>
             </tr>
         </table>
 
-        <h2>Accounts balances</h2>
+        <h2>Balances</h2>
         <table>
             <tr>
-                <td>Operator account ETH balance</td>
+                <td>
+                    <div class="label-with-legend">Current operator account ETH balance</div>
+                    <div class="legend">OB</div>
+                </td>
                 <td>{{ .OperatorBalance }} ETH</td>
             </tr>
             <tr>
-                <td>Beneficiary account ETH balance</td>
+                <td>
+                    <div class="label-with-legend">Current beneficiary account ETH balance</div>
+                    <div class="legend">BB</div>
+                </td>
                 <td>{{ .BeneficiaryEthBalance }} ETH</td>
             </tr>
             <tr>
-                <td>Beneficiary account KEEP balance</td>
-                <td>{{ .BeneficiaryKeepBalance }} KEEP</td>
+                <td>
+                    <div class="label-with-legend">Accumulated ETH rewards</div>
+                    <div class="legend">AR</div></td>
+                <td>{{ .AccumulatedRewards }} ETH</td>
             </tr>
         </table>
 
         <h2>Rewards</h2>
         <table>
             <tr>
-                <td>Accumulated, not yet withdrawn ETH rewards and operator reimbursements</td>
-                <td>{{ .AccumulatedRewards }} ETH</td>
+                <td>
+                    <div class="label-with-legend final-calculation">Staker ETH earned</div>
+                    <div class="legend">(BB+AR-(IB-OB))&times;RS</div>
+                </td>
+                <td class="final-calculation">{{ .CustomerEthEarned}} ETH</td>
+            </tr>
+            <tr>
+                <td>
+                    <div class="label-with-legend final-calculation">Provider ETH earned</div>
+                    <div class="legend">(BB+AR-(IB-OB))&times;(1-RS)</div>
+                </td>
+                <td class="final-calculation">{{ .ProviderEthEarned}} ETH</td>
             </tr>
         </table>
 
@@ -102,7 +159,7 @@
             </tr>
         </table>
 
-        <p>Groups and your members:</p>
+        <h2>Group members</h2>
 
         <table>
             <tr>
