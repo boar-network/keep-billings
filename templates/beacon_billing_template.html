@@ -119,7 +119,7 @@
             </tr>
             <tr>
                 <td>
-                    <div class="label-with-legend">Accumulated ETH rewards and reimbursements</div>
+                    <div class="label-with-legend">Accumulated ETH rewards</div>
                     <div class="legend">AR</div></td>
                 <td>{{ .AccumulatedRewards }} ETH</td>
             </tr>
@@ -130,14 +130,14 @@
             <tr>
                 <td>
                     <div class="label-with-legend final-calculation">Staker ETH earned</div>
-                    <div class="legend">(AR-(IB-OB))&times;RS</div>
+                    <div class="legend">(BB+AR-(IB-OB))&times;RS</div>
                 </td>
                 <td class="final-calculation">{{ .CustomerEthEarned}} ETH</td>
             </tr>
             <tr>
                 <td>
                     <div class="label-with-legend final-calculation">Provider ETH earned</div>
-                    <div class="legend">(AR-(IB-OB))&times;(1-RS)</div>
+                    <div class="legend">(BB+AR-(IB-OB))&times;(1-RS)</div>
                 </td>
                 <td class="final-calculation">{{ .ProviderEthEarned}} ETH</td>
             </tr>
