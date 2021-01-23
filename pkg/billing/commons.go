@@ -25,8 +25,8 @@ type Report struct {
 	BeneficiaryTbtcBalance string
 
 	AccumulatedRewards string
-	CustomerEthEarned  string
-	ProviderEthEarned  string
+	CustomerEthShare   string
+	ProviderEthShare   string
 }
 
 type DataSource interface {

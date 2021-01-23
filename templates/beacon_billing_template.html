@@ -78,11 +78,11 @@
                 <td>{{ .Stake }} KEEP</td>
             </tr>
             <tr>
-                <td>Operator account</td>
+                <td>Operator</td>
                 <td>{{ .Customer.Operator }}</td>
             </tr>
             <tr>
-                <td>Beneficiary account</td>
+                <td>Beneficiary</td>
                 <td>{{ .Customer.Beneficiary }}</td>
             </tr>
         </table>
@@ -91,21 +91,21 @@
         <table>
             <tr>
                 <td>
-                    <div class="label-with-legend final-calculation">Staker ETH earned</div>
-                    <div class="legend">(BB+AR-(IB-OB))&times;RS</div>
+                    <div class="label-with-legend final-calculation">Staker ETH share</div>
+                    <div class="legend">RS&times;AR + BB</div>
                 </td>
-                <td class="final-calculation">{{ .CustomerEthEarned}} ETH</td>
+                <td class="final-calculation">{{ .CustomerEthShare}} ETH</td>
             </tr>
             <tr>
                 <td>
-                    <div class="label-with-legend final-calculation">Provider ETH earned</div>
-                    <div class="legend">(BB+AR-(IB-OB))&times;(1-RS)</div>
+                    <div class="label-with-legend">Provider ETH share</div>
+                    <div class="legend">(1-RS)&times;AR</div>
                 </td>
-                <td class="final-calculation">{{ .ProviderEthEarned}} ETH</td>
+                <td class>{{ .ProviderEthShare}} ETH</td>
             </tr>
             <tr>
                 <td>
-                    <div class="label-with-legend">Staker net rewards share</div>
+                    <div class="label-with-legend">Staker rewards % share</div>
                     <div class="legend">RS</div>
                 </td>
                 <td>{{ .Customer.CustomerSharePercentage }} %</td>

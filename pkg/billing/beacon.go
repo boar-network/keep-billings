@@ -176,8 +176,8 @@ func (brg *BeaconReportGenerator) Generate(
 		BeneficiaryEthBalance:  beneficiaryEthBalance.Text('f', 6),
 		BeneficiaryKeepBalance: beneficiaryKeepBalance.Text('f', 6),
 		AccumulatedRewards:     accumulatedEthRewards.Text('f', 6),
-		CustomerEthEarned:      customerEthRewardsShare.Text('f', 6),
-		ProviderEthEarned:      providerEthRewardsShare.Text('f', 6),
+		CustomerEthShare:       customerEthRewardsShare.Text('f', 6),
+		ProviderEthShare:       providerEthRewardsShare.Text('f', 6),
 	}
 
 	inactiveGroupsMemberCount, activeGroupsSummary := brg.summarizeGroupsInfo(
