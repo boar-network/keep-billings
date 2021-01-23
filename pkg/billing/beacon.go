@@ -262,6 +262,10 @@ func (brg *BeaconReportGenerator) calculateAccumulatedRewards(
 			continue
 		}
 
+		if group.isActive {
+			continue
+		}
+
 		memberRewards, err := brg.dataSource.GroupMemberRewards(group.publicKey)
 		if err != nil {
 			return nil, err
