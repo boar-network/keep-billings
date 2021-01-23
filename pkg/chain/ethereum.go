@@ -104,6 +104,15 @@ func (ec *EthereumClient) Stake(address string) (*big.Float, error) {
 	return WeiToEth(stake), nil
 }
 
+func (ec *EthereumClient) AllGroupsCount() (int64, error) {
+	result, err := ec.operatorContract.GetNumberOfCreatedGroups(nil)
+	if err != nil {
+		return 0, err
+	}
+
+	return result.Int64(), nil
+}
+
 func (ec *EthereumClient) ActiveGroupsCount() (int64, error) {
 	result, err := ec.operatorContract.NumberOfGroups(nil)
 	if err != nil {

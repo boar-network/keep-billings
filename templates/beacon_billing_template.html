@@ -22,6 +22,7 @@
     
             .top-header {
                 text-align: center;
+                padding-bottom: 50px;
             }
     
             .block-number {
@@ -62,7 +63,7 @@
    
     <body>
         <header class="top-header">
-            <h1>Random Beacon Billing</h1>
+            <h1>Keep Random Beacon Staking Report</h1>
             <p>Generated with boar.network <a href="https://github.com/boar-network/keep-billings/">billing tool</a> &#128023;</p>
             <p>Thank you for trusting us with your KEEP &hearts;</p>
         </header>
@@ -92,7 +93,7 @@
             <tr>
                 <td>
                     <div class="label-with-legend final-calculation">Staker ETH share</div>
-                    <div class="legend">RS&times;AR + BB</div>
+                    <div class="legend">RS&times;AR+BB</div>
                 </td>
                 <td class="final-calculation">{{ .CustomerEthShare}} ETH</td>
             </tr>
@@ -161,11 +162,15 @@
         <h2>Groups</h2>
         <table>
             <tr>
-                <td>The number of currently active beacon groups in the network</td>
+                <td>The total number of groups created in the network</td>
+                <td>{{ .TotalGroupsCount }}</td>
+            </tr>
+            <tr>
+                <td>The number of active beacon groups in the network</td>
                 <td>{{ .ActiveGroupsCount }}</td>
             </tr>
             <tr>
-                <td>The total number of your members in currently active groups</td>
+                <td>The total number of your members in active groups</td>
                 <td>{{ .ActiveGroupsMembersCount }}</td>
             </tr>
             <tr>
@@ -174,7 +179,7 @@
             </tr>
         </table>
 
-        <h2>Group members</h2>
+        <h2>Active Group Members</h2>
 
         <table>
             <tr>

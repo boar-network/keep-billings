@@ -13,6 +13,7 @@ import (
 type BeaconReport struct {
 	*Report
 
+	TotalGroupsCount           int
 	ActiveGroupsCount          int
 	ActiveGroupsMembersCount   int
 	ActiveGroupsSummary        map[string]string
@@ -22,6 +23,7 @@ type BeaconReport struct {
 type BeaconDataSource interface {
 	DataSource
 
+	AllGroupsCount() (int64, error)
 	ActiveGroupsCount() (int64, error)
 	FirstActiveGroupIndex() (int64, error)
 	GroupPublicKey(index int64) ([]byte, error)
@@ -63,10 +65,10 @@ func (brg *BeaconReportGenerator) FetchCommonData() error {
 }
 
 func (brg *BeaconReportGenerator) fetchGroupsData() ([]*group, error) {
-	activeGroupsCount, err := brg.dataSource.ActiveGroupsCount()
+	numberOfAllGroups, err := brg.dataSource.AllGroupsCount()
 	if err != nil {
 		return nil, fmt.Errorf(
-			"could not get active groups count: [%v]",
+			"could not get total group count: [%v]",
 			err,
 		)
 	}
@@ -80,20 +82,6 @@ func (brg *BeaconReportGenerator) fetchGroupsData() ([]*group, error) {
 	}
 
 	groups := make([]*group, 0)
-
-	// TODO: resolve terminated groups issue:
-	//  - activeGroupsCount is the number of active groups and doesn't
-	//    count terminated ones
-	//  - firstActiveGroupIndex is just the number of expired groups
-	//  A problematic scenario:
-	//  We have 5 groups with indexes: 0,1,2,3,4.
-	//  Suppose group 0 is expired and group 3 is terminated.
-	//  So, firstActiveGroupIndex is 1 and activeGroupsCount is 3.
-	//  Because of that we will iterate on 1,2,3 instead of 1,2,4.
-	//
-	// The new version of keep random beacon operator contract has
-	// getNumberOfCreatedGroups function.
-	numberOfAllGroups := firstActiveGroupIndex + activeGroupsCount
 
 	for index := int64(0); index < numberOfAllGroups; index++ {
 		publicKey, err := brg.dataSource.GroupPublicKey(index)
@@ -183,67 +171,44 @@ func (brg *BeaconReportGenerator) Generate(
 		ProviderKeepShare:      providerKeepRewardsShare.Text('f', 6),
 	}
 
-	inactiveGroupsMemberCount, activeGroupsSummary := brg.summarizeGroupsInfo(
+	activeGroupsMemberCount, inactiveGroupsMemberCount,
+		activeGroupsSummary := brg.summarizeGroupsInfo(
 		customer.Operator,
 	)
 
 	return &BeaconReport{
 		Report:                     baseReport,
-		ActiveGroupsCount:          len(brg.groups),
-		ActiveGroupsMembersCount:   brg.countActiveGroupsMembers(customer.Operator),
+		TotalGroupsCount:           len(brg.groups),
+		ActiveGroupsCount:          len(activeGroupsSummary),
+		ActiveGroupsMembersCount:   activeGroupsMemberCount,
 		ActiveGroupsSummary:        activeGroupsSummary,
 		InactiveGroupsMembersCount: inactiveGroupsMemberCount,
 	}, nil
 }
 
-func (brg *BeaconReportGenerator) countActiveGroupsMembers(operator string) int {
-	count := 0
-
-	for _, group := range brg.groups {
-		count += countActiveGroupMembers(operator, group)
-	}
-
-	return count
-}
-
-func countActiveGroupMembers(
-	operator string,
-	group *group,
-) int {
-	count := 0
-
-	operatorAddress := strings.ToLower(operator)
-
-	for _, memberAddress := range group.members {
-		if operatorAddress == strings.ToLower(memberAddress) {
-			count++
-		}
-	}
-
-	return count
-}
-
 func (brg *BeaconReportGenerator) summarizeGroupsInfo(
 	operator string,
-) (int, map[string]string) {
-	inactiveGroupsMemberCount := 0
-	activeGroupsSummary := make(map[string]string)
-
-	operatorAddress := strings.ToLower(operator)
+) (
+	// count of members for the operator in active groups
+	activeGroupsMemberCount int,
+	// count of members for the operator in no longer active groups
+	inactiveGroupsMemberCount int,
+	// summary of all active groups, no matter if the operator has a member
+	// in a group or not
+	activeGroupsSummary map[string]string,
+) {
+	activeGroupsMemberCount = 0
+	inactiveGroupsMemberCount = 0
+	activeGroupsSummary = make(map[string]string)
 
 	for _, group := range brg.groups {
-		operatorMembers := make([]int, 0)
-
-		for memberIndex, memberAddress := range group.members {
-			if operatorAddress == strings.ToLower(memberAddress) {
-				operatorMembers = append(operatorMembers, memberIndex)
-			}
-		}
+		operatorMembers := getGroupMemberIndexes(operator, group)
 
 		if !group.isActive {
 			inactiveGroupsMemberCount += len(operatorMembers)
 			continue
 		}
+		activeGroupsMemberCount += len(operatorMembers)
 
 		sort.Ints(operatorMembers)
 
@@ -256,7 +221,7 @@ func (brg *BeaconReportGenerator) summarizeGroupsInfo(
 		)
 
 		if len(operatorMembersString) == 0 {
-			operatorMembersString = "No members"
+			operatorMembersString = "-"
 		}
 
 		group := "0x" + hex.EncodeToString(group.publicKey)[:32] + "..."
@@ -264,7 +229,19 @@ func (brg *BeaconReportGenerator) summarizeGroupsInfo(
 		activeGroupsSummary[group] = operatorMembersString
 	}
 
-	return inactiveGroupsMemberCount, activeGroupsSummary
+	return
+}
+
+func getGroupMemberIndexes(operatorAddress string, _group *group) []int {
+	operatorMembers := make([]int, 0)
+
+	for memberIndex, memberAddress := range _group.members {
+		if strings.ToLower(operatorAddress) == strings.ToLower(memberAddress) {
+			operatorMembers = append(operatorMembers, memberIndex)
+		}
+	}
+
+	return operatorMembers
 }
 
 func (brg *BeaconReportGenerator) calculateAccumulatedRewards(
@@ -290,9 +267,11 @@ func (brg *BeaconReportGenerator) calculateAccumulatedRewards(
 			return nil, err
 		}
 
+		operatorMembers := getGroupMemberIndexes(operator, group)
+
 		groupRewardsWei := new(big.Int).Mul(
 			memberRewards,
-			big.NewInt(int64(countActiveGroupMembers(operator, group))),
+			big.NewInt(int64(len(operatorMembers))),
 		)
 
 		accumulatedRewardsWei = new(big.Int).Add(
