@@ -85,6 +85,24 @@
                 <td>Beneficiary account</td>
                 <td>{{ .Customer.Beneficiary }}</td>
             </tr>
+        </table>
+
+        <h2>Rewards</h2>
+        <table>
+            <tr>
+                <td>
+                    <div class="label-with-legend final-calculation">Staker ETH earned</div>
+                    <div class="legend">(BB+AR-(IB-OB))&times;RS</div>
+                </td>
+                <td class="final-calculation">{{ .CustomerEthEarned}} ETH</td>
+            </tr>
+            <tr>
+                <td>
+                    <div class="label-with-legend final-calculation">Provider ETH earned</div>
+                    <div class="legend">(BB+AR-(IB-OB))&times;(1-RS)</div>
+                </td>
+                <td class="final-calculation">{{ .ProviderEthEarned}} ETH</td>
+            </tr>
             <tr>
                 <td>
                     <div class="label-with-legend">Staker net rewards share</div>
@@ -93,6 +111,7 @@
                 <td>{{ .Customer.CustomerSharePercentage }} %</td>
             </tr>
         </table>
+
 
         <h2>Balances</h2>
         <table>
@@ -122,24 +141,6 @@
                     <div class="label-with-legend">Accumulated ETH rewards</div>
                     <div class="legend">AR</div></td>
                 <td>{{ .AccumulatedRewards }} ETH</td>
-            </tr>
-        </table>
-
-        <h2>Rewards</h2>
-        <table>
-            <tr>
-                <td>
-                    <div class="label-with-legend final-calculation">Staker ETH earned</div>
-                    <div class="legend">(BB+AR-(IB-OB))&times;RS</div>
-                </td>
-                <td class="final-calculation">{{ .CustomerEthEarned}} ETH</td>
-            </tr>
-            <tr>
-                <td>
-                    <div class="label-with-legend final-calculation">Provider ETH earned</div>
-                    <div class="legend">(BB+AR-(IB-OB))&times;(1-RS)</div>
-                </td>
-                <td class="final-calculation">{{ .ProviderEthEarned}} ETH</td>
             </tr>
         </table>
 
