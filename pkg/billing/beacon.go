@@ -161,7 +161,8 @@ func (brg *BeaconReportGenerator) Generate(
 		return nil, err
 	}
 
-	customerEthRewardsShare, providerEthRewardsShare, _, _ :=
+	customerEthRewardsShare, providerEthRewardsShare,
+		customerKeepRewardsShare, providerKeepRewardsShare :=
 		calculateFinalBeaconRewards(
 			big.NewFloat(float64(customer.CustomerSharePercentage)),
 			beneficiaryEthBalance,
@@ -178,6 +179,8 @@ func (brg *BeaconReportGenerator) Generate(
 		AccumulatedRewards:     accumulatedEthRewards.Text('f', 6),
 		CustomerEthShare:       customerEthRewardsShare.Text('f', 6),
 		ProviderEthShare:       providerEthRewardsShare.Text('f', 6),
+		CustomerKeepShare:      customerKeepRewardsShare.Text('f', 6),
+		ProviderKeepShare:      providerKeepRewardsShare.Text('f', 6),
 	}
 
 	inactiveGroupsMemberCount, activeGroupsSummary := brg.summarizeGroupsInfo(

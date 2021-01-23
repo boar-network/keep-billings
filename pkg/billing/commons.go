@@ -22,11 +22,12 @@ type Report struct {
 	OperatorBalance        string
 	BeneficiaryEthBalance  string
 	BeneficiaryKeepBalance string
-	BeneficiaryTbtcBalance string
 
 	AccumulatedRewards string
 	CustomerEthShare   string
 	ProviderEthShare   string
+	CustomerKeepShare  string
+	ProviderKeepShare  string
 }
 
 type DataSource interface {
