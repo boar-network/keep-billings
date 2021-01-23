@@ -161,11 +161,9 @@ func (brg *BeaconReportGenerator) Generate(
 		return nil, err
 	}
 
-	operationalCosts, customerEthRewardsShare, providerEthRewardsShare, _, _ :=
+	customerEthRewardsShare, providerEthRewardsShare, _, _ :=
 		calculateFinalBeaconRewards(
-			big.NewFloat(float64(customer.InitialOperatorEthBalance)),
 			big.NewFloat(float64(customer.CustomerSharePercentage)),
-			operatorEthBalance,
 			beneficiaryEthBalance,
 			beneficiaryKeepBalance,
 			accumulatedEthRewards,
@@ -178,7 +176,6 @@ func (brg *BeaconReportGenerator) Generate(
 		BeneficiaryEthBalance:  beneficiaryEthBalance.Text('f', 6),
 		BeneficiaryKeepBalance: beneficiaryKeepBalance.Text('f', 6),
 		AccumulatedRewards:     accumulatedEthRewards.Text('f', 6),
-		OperationalCosts:       operationalCosts.Text('f', 6),
 		CustomerEthEarned:      customerEthRewardsShare.Text('f', 6),
 		ProviderEthEarned:      providerEthRewardsShare.Text('f', 6),
 	}
@@ -305,43 +302,16 @@ func (brg *BeaconReportGenerator) calculateAccumulatedRewards(
 }
 
 func calculateFinalBeaconRewards(
-	initialOperatorEthBalance *big.Float,
 	customerSharePercentage *big.Float,
-	operatorEthBalance *big.Float,
 	beneficiaryEthBalance *big.Float,
 	beneficiaryKeepBalance *big.Float,
 	accumulatedEthRewards *big.Float,
 ) (
-	operationalCosts *big.Float,
 	customerEthRewardShare *big.Float,
 	providerEthRewardShare *big.Float,
 	customerKeepRewardShare *big.Float,
 	providerKeepRewardShare *big.Float,
 ) {
-	operationalCosts = new(big.Float).Sub(
-		initialOperatorEthBalance,
-		operatorEthBalance,
-	)
-
-	// operational costs < 0
-	//
-	// Something is wrong. It seems that the operator account receive a funding
-	// from outside of keep network and it is not possible to calculate
-	// operational costs. Also, inspect initialOperatorEthBalance in the config.
-	if operationalCosts.Cmp(big.NewFloat(0)) == -1 { // operationalCosts < 0
-		logger.Errorf(
-			"operator account received money from outside of the network; " +
-				"please inspect initialOperatorEthBalance in customers.json",
-		)
-
-		operationalCosts = big.NewFloat(0)
-		customerEthRewardShare = big.NewFloat(0)
-		providerEthRewardShare = big.NewFloat(0)
-		customerKeepRewardShare = big.NewFloat(0)
-		providerKeepRewardShare = big.NewFloat(0)
-		return
-	}
-
 	customerKeepRewardShare = new(big.Float).Quo(
 		new(big.Float).Mul(beneficiaryKeepBalance, customerSharePercentage),
 		big.NewFloat(100),
@@ -351,32 +321,18 @@ func calculateFinalBeaconRewards(
 		customerKeepRewardShare,
 	)
 
-	ethNetRewards := new(big.Float).Sub(
-		new(big.Float).Add(accumulatedEthRewards, beneficiaryEthBalance),
-		operationalCosts,
-	)
-
-	// The cost of operating is higher than reimbursemens and rewards received
-	// from the network (negative net rewards).
-	if ethNetRewards.Sign() == -1 {
-		logger.Warningf(
-			"the cost of operating is higher than reimbursements received from " +
-				"the network",
-		)
-
-		operationalCosts = big.NewFloat(0)
-		customerEthRewardShare = big.NewFloat(0)
-		providerEthRewardShare = big.NewFloat(0)
-		return
-	}
-
-	customerEthRewardShare = new(big.Float).Quo(
-		new(big.Float).Mul(ethNetRewards, customerSharePercentage),
+	customerAccumulatedEthRewardShare := new(big.Float).Quo(
+		new(big.Float).Mul(accumulatedEthRewards, customerSharePercentage),
 		big.NewFloat(100),
 	)
+
+	customerEthRewardShare = new(big.Float).Add(
+		customerAccumulatedEthRewardShare, beneficiaryEthBalance,
+	)
+
 	providerEthRewardShare = new(big.Float).Sub(
-		ethNetRewards,
-		customerEthRewardShare,
+		accumulatedEthRewards,
+		customerAccumulatedEthRewardShare,
 	)
 
 	return

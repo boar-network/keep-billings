@@ -4,15 +4,13 @@
       "name": "Beacon Customer A",
       "operator": "0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
       "beneficiary": "0xAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
-      "customerSharePercentage": 50,
-      "initialOperatorEthBalance": 10
+      "customerSharePercentage": 50
     },
     {
       "name": "Beacon Customer B",
       "operator": "0xBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
       "beneficiary": "0xBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
-      "customerSharePercentage": 75,
-      "initialOperatorEthBalance": 10
+      "customerSharePercentage": 75
     }
   ]
 }
