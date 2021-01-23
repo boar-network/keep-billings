@@ -41,23 +41,6 @@ cp -a "$WORKDIR/temporary/keep-core/pkg/chain/gen/abi/." "$WORKDIR/pkg/chain/gen
 
 printf "${DONE_START}keep-core contracts ABI have been installed successfully!${DONE_END}"
 
-# Install keep-ecdsa contracts abi.
-
-printf "${LOG_START}Installing keep-ecdsa contracts ABI...${LOG_END}"
-
-cd "$WORKDIR/temporary"
-git clone git@github.com:keep-network/keep-ecdsa.git
-
-cd "$WORKDIR/temporary/keep-ecdsa/solidity"
-npm install
-
-cd "$WORKDIR/temporary/keep-ecdsa"
-go generate ./...
-
-cd "$WORKDIR"
-cp -a "$WORKDIR/temporary/keep-ecdsa/pkg/chain/gen/abi/." "$WORKDIR/pkg/chain/gen/ecdsa/abi"
-
-printf "${DONE_START}keep-ecdsa contracts ABI have been installed successfully!${DONE_END}"
 
 # Create ERC20 abi
 
