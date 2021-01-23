@@ -8,7 +8,6 @@ import (
 	"github.com/ipfs/go-log"
 
 	coreabi "github.com/boar-network/keep-billings/pkg/chain/gen/core/abi"
-	ecdsaabi "github.com/boar-network/keep-billings/pkg/chain/gen/ecdsa/abi"
 	erc20abi "github.com/boar-network/keep-billings/pkg/chain/gen/erc20/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
@@ -20,7 +19,6 @@ var methodLookupAbiStrings = []string{
 	coreabi.TokenStakingABI,
 	coreabi.KeepRandomBeaconOperatorABI,
 	coreabi.KeepRandomBeaconServiceImplV1ABI,
-	ecdsaabi.KeepBondingABI,
 }
 
 type EthereumClient struct {
