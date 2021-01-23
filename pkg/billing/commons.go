@@ -35,5 +35,4 @@ type DataSource interface {
 	EthBalance(address string) (*big.Float, error)
 	Stake(address string) (*big.Float, error)
 	KeepBalance(address string) (*big.Float, error)
-	TbtcBalance(address string) (*big.Float, error)
 }

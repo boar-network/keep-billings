@@ -14,14 +14,5 @@
       "customerSharePercentage": 75,
       "initialOperatorEthBalance": 10
     }
-  ],
-  "ecdsa": [
-    {
-      "name": "ECDSA Customer A",
-      "operator": "0xCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC",
-      "beneficiary": "0xCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC",
-      "customerSharePercentage": 90,
-      "initialOperatorEthBalance": 10
-    }
   ]
 }

@@ -58,10 +58,8 @@ func GenerateBillings(c *cli.Context) error {
 	ethereumClient, err := chain.NewEthereumClient(
 		config.Ethereum.URL,
 		config.Ethereum.KeepToken,
-		config.Ethereum.TbtcToken,
 		config.Ethereum.TokenStaking,
 		config.Ethereum.KeepRandomBeaconOperator,
-		config.Ethereum.BondedECDSAKeepFactory,
 	)
 	if err != nil {
 		return err
@@ -84,25 +82,6 @@ func GenerateBillings(c *cli.Context) error {
 		},
 		beaconPdfExporter,
 		config.Billings.TargetDirectory+"/%v_Beacon_Billing.pdf",
-	)
-
-	ecdsaReportGenerator := billing.NewEcdsaReportGenerator(ethereumClient)
-
-	ecdsaPdfExporter, err := exporter.NewPdfExporter(
-		config.Billings.EcdsaTemplateFile,
-	)
-	if err != nil {
-		return err
-	}
-
-	generateBillings(
-		customers.Ecdsa,
-		ecdsaReportGenerator.FetchCommonData,
-		func(customer *billing.Customer) (interface{}, error) {
-			return ecdsaReportGenerator.Generate(customer)
-		},
-		ecdsaPdfExporter,
-		config.Billings.TargetDirectory+"/%v_ECDSA_Billing.pdf",
 	)
 
 	return nil
