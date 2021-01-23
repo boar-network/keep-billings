@@ -122,7 +122,6 @@ func (erg *EcdsaReportGenerator) fetchKeepsData() ([]*keep, error) {
 
 func (erg *EcdsaReportGenerator) Generate(
 	customer *Customer,
-	blocks CachedBlocks,
 ) (*EcdsaReport, error) {
 	stake, err := erg.dataSource.Stake(customer.Operator)
 	if err != nil {
@@ -159,15 +158,6 @@ func (erg *EcdsaReportGenerator) Generate(
 		operatorBalance,
 	)
 
-	transactions, err := outboundTransactions(
-		customer.Operator,
-		blocks,
-		erg.dataSource,
-	)
-	if err != nil {
-		return nil, err
-	}
-
 	baseReport := &Report{
 		Customer:               customer,
 		Stake:                  stake.Text('f', 0),
@@ -177,9 +167,6 @@ func (erg *EcdsaReportGenerator) Generate(
 		BeneficiaryTbtcBalance: beneficiaryTbtcBalance.Text('f', 6),
 		AccumulatedRewards:     accumulatedRewards.Text('f', 6),
 		OperationalCosts:       operationalCosts.Text('f', 6),
-		FromBlock:              blocks.FirstBlockNumber(),
-		ToBlock:                blocks.LastBlockNumber(),
-		Transactions:           transactions,
 	}
 
 	inactiveKeepMembersCount, activeKeepsSummary := erg.prepareKeepsSummary(customer.Operator)

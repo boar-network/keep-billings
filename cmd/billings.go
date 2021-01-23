@@ -92,13 +92,11 @@ func GenerateBillings(c *cli.Context) error {
 		return err
 	}
 
-	blocks := ethereumClient.GetBlocks(fromBlock, toBlock)
-
 	generateBillings(
 		customers.Beacon,
 		beaconReportGenerator.FetchCommonData,
 		func(customer *billing.Customer) (interface{}, error) {
-			return beaconReportGenerator.Generate(customer, blocks)
+			return beaconReportGenerator.Generate(customer)
 		},
 		beaconPdfExporter,
 		config.Billings.TargetDirectory+"/%v_Beacon_Billing.pdf",
@@ -117,7 +115,7 @@ func GenerateBillings(c *cli.Context) error {
 		customers.Ecdsa,
 		ecdsaReportGenerator.FetchCommonData,
 		func(customer *billing.Customer) (interface{}, error) {
-			return ecdsaReportGenerator.Generate(customer, blocks)
+			return ecdsaReportGenerator.Generate(customer)
 		},
 		ecdsaPdfExporter,
 		config.Billings.TargetDirectory+"/%v_ECDSA_Billing.pdf",
