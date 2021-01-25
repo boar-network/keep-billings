@@ -15,16 +15,13 @@ type Billings struct {
 	CustomersFile      string
 	TargetDirectory    string
 	BeaconTemplateFile string
-	EcdsaTemplateFile  string
 }
 
 type Ethereum struct {
 	URL                      string
 	KeepToken                string
-	TbtcToken                string
 	TokenStaking             string
 	KeepRandomBeaconOperator string
-	BondedECDSAKeepFactory   string
 }
 
 func ReadConfig(filePath string) (*Config, error) {

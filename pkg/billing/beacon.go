@@ -135,7 +135,6 @@ func (brg *BeaconReportGenerator) fetchGroupsData() ([]*group, error) {
 
 func (brg *BeaconReportGenerator) Generate(
 	customer *Customer,
-	blocks CachedBlocks,
 ) (*BeaconReport, error) {
 	stake, err := brg.dataSource.Stake(customer.Operator)
 	if err != nil {
@@ -172,15 +171,6 @@ func (brg *BeaconReportGenerator) Generate(
 			accumulatedEthRewards,
 		)
 
-	transactions, err := outboundTransactions(
-		customer.Operator,
-		blocks,
-		brg.dataSource,
-	)
-	if err != nil {
-		return nil, err
-	}
-
 	baseReport := &Report{
 		Customer:               customer,
 		Stake:                  stake.Text('f', 0),
@@ -191,9 +181,6 @@ func (brg *BeaconReportGenerator) Generate(
 		OperationalCosts:       operationalCosts.Text('f', 6),
 		CustomerEthEarned:      customerEthRewardsShare.Text('f', 6),
 		ProviderEthEarned:      providerEthRewardsShare.Text('f', 6),
-		FromBlock:              blocks.FirstBlockNumber(),
-		ToBlock:                blocks.LastBlockNumber(),
-		Transactions:           transactions,
 	}
 
 	inactiveGroupsMemberCount, activeGroupsSummary := brg.summarizeGroupsInfo(

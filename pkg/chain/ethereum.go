@@ -1,21 +1,16 @@
 package chain
 
 import (
-	"bytes"
 	"context"
 	"math"
 	"math/big"
-	"strings"
-	"time"
 
 	"github.com/ipfs/go-log"
 
 	coreabi "github.com/boar-network/keep-billings/pkg/chain/gen/core/abi"
 	ecdsaabi "github.com/boar-network/keep-billings/pkg/chain/gen/ecdsa/abi"
 	erc20abi "github.com/boar-network/keep-billings/pkg/chain/gen/erc20/abi"
-	"github.com/ethereum/go-ethereum/accounts/abi"
 	"github.com/ethereum/go-ethereum/common"
-	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/ethclient"
 )
 
@@ -25,28 +20,21 @@ var methodLookupAbiStrings = []string{
 	coreabi.TokenStakingABI,
 	coreabi.KeepRandomBeaconOperatorABI,
 	coreabi.KeepRandomBeaconServiceImplV1ABI,
-	ecdsaabi.BondedECDSAKeepFactoryABI,
-	ecdsaabi.BondedECDSAKeepABI,
 	ecdsaabi.KeepBondingABI,
 }
 
 type EthereumClient struct {
-	client              *ethclient.Client
-	keepToken           *erc20abi.TokenCaller
-	tbtcToken           *erc20abi.TokenCaller
-	tokenStaking        *coreabi.TokenStakingCaller
-	operatorContract    *coreabi.KeepRandomBeaconOperatorCaller
-	keepFactoryContract *ecdsaabi.BondedECDSAKeepFactoryCaller
-	methodLookupAbiList []abi.ABI
+	client           *ethclient.Client
+	keepToken        *erc20abi.TokenCaller
+	tokenStaking     *coreabi.TokenStakingCaller
+	operatorContract *coreabi.KeepRandomBeaconOperatorCaller
 }
 
 func NewEthereumClient(
 	url string,
 	keepTokenAddress string,
-	tbtcTokenAddress string,
 	tokenStakingAddress string,
 	operatorContractAddress string,
-	keepFactoryContractAddress string,
 ) (*EthereumClient, error) {
 	client, err := ethclient.Dial(url)
 	if err != nil {
@@ -55,14 +43,6 @@ func NewEthereumClient(
 
 	keepToken, err := erc20abi.NewTokenCaller(
 		common.HexToAddress(keepTokenAddress),
-		client,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	tbtcToken, err := erc20abi.NewTokenCaller(
-		common.HexToAddress(tbtcTokenAddress),
 		client,
 	)
 	if err != nil {
@@ -85,32 +65,11 @@ func NewEthereumClient(
 		return nil, err
 	}
 
-	keepFactoryContract, err := ecdsaabi.NewBondedECDSAKeepFactoryCaller(
-		common.HexToAddress(keepFactoryContractAddress),
-		client,
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	methodLookupAbiList := make([]abi.ABI, len(methodLookupAbiStrings))
-	for i := range methodLookupAbiList {
-		methodLookupAbiList[i], err = abi.JSON(
-			strings.NewReader(methodLookupAbiStrings[i]),
-		)
-		if err != nil {
-			return nil, err
-		}
-	}
-
 	return &EthereumClient{
-		client:              client,
-		keepToken:           keepToken,
-		tbtcToken:           tbtcToken,
-		tokenStaking:        tokenStaking,
-		operatorContract:    operatorContract,
-		keepFactoryContract: keepFactoryContract,
-		methodLookupAbiList: methodLookupAbiList,
+		client:           client,
+		keepToken:        keepToken,
+		tokenStaking:     tokenStaking,
+		operatorContract: operatorContract,
 	}, nil
 }
 
@@ -121,16 +80,6 @@ func (ec *EthereumClient) KeepBalance(address string) (*big.Float, error) {
 	}
 
 	// it's not ETH but KEEP ERC-20 uses the same number of decimals
-	return WeiToEth(balance), nil
-}
-
-func (ec *EthereumClient) TbtcBalance(address string) (*big.Float, error) {
-	balance, err := ec.tbtcToken.BalanceOf(nil, common.HexToAddress(address))
-	if err != nil {
-		return nil, err
-	}
-
-	// it's not ETH but tBTC ERC-20 uses the same number of decimals
 	return WeiToEth(balance), nil
 }
 
@@ -155,139 +104,6 @@ func (ec *EthereumClient) Stake(address string) (*big.Float, error) {
 
 	// it's not ETH but KEEP ERC-20 uses the same number of decimals
 	return WeiToEth(stake), nil
-}
-
-func (ec *EthereumClient) GetBlocks(fromBlock, toBlock int64) *cachedEthereumBlocks {
-	logger.Infof("getting blocks from [%v] to [%v]", fromBlock, toBlock)
-	ctx := context.TODO()
-
-	const retryDelay = 60 * time.Second
-
-	var blocks []*types.Block
-
-	for blockNumber := fromBlock; blockNumber <= toBlock; blockNumber++ {
-		progress := math.Floor((float64(blockNumber-fromBlock) / float64(toBlock-fromBlock)) * 100)
-		logger.Infof("[%.0f%%] getting block [%v]", progress, blockNumber)
-
-		for {
-			block, err := ec.client.BlockByNumber(ctx, big.NewInt(blockNumber))
-			if err == nil {
-				blocks = append(blocks, block)
-				break
-			}
-
-			logger.Errorf(
-				"could not get block [%v]: [%v]; retrying after [%v]",
-				blockNumber,
-				err,
-				retryDelay,
-			)
-			time.Sleep(retryDelay)
-		}
-	}
-
-	return &cachedEthereumBlocks{
-		client: ec.client,
-		blocks: blocks,
-	}
-}
-
-type cachedEthereumBlocks struct {
-	client *ethclient.Client
-	blocks []*types.Block
-}
-
-func (ceb *cachedEthereumBlocks) FirstBlockNumber() uint64 {
-	return ceb.blocks[0].NumberU64()
-}
-
-func (ceb *cachedEthereumBlocks) LastBlockNumber() uint64 {
-	return ceb.blocks[len(ceb.blocks)-1].NumberU64()
-}
-
-func (ceb *cachedEthereumBlocks) FilterOutboundTransactions(
-	address string,
-) (map[int64][]string, error) {
-	chainID, err := ceb.client.NetworkID(context.TODO())
-	if err != nil {
-		return nil, err
-	}
-
-	addressFromHex := common.HexToAddress(address)
-	blocksTransactions := make(map[int64][]string)
-
-	for _, block := range ceb.blocks {
-		transactions := make([]string, 0)
-
-		for _, transaction := range block.Transactions() {
-			message, err := transaction.AsMessage(types.NewEIP155Signer(chainID))
-			if err != nil {
-				return nil, err
-			}
-
-			from := message.From()
-			if !bytes.Equal(addressFromHex[:], from[:]) {
-				continue
-			}
-
-			transactions = append(transactions, transaction.Hash().Hex())
-		}
-
-		blocksTransactions[block.Number().Int64()] = transactions
-	}
-
-	return blocksTransactions, nil
-}
-
-func (ec *EthereumClient) TransactionGasPrice(txHash string) (*big.Int, error) {
-	ctx := context.TODO()
-
-	transaction, _, err := ec.client.TransactionByHash(
-		ctx,
-		common.HexToHash(txHash),
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	return transaction.GasPrice(), nil
-}
-
-func (ec *EthereumClient) TransactionGasUsed(txHash string) (*big.Int, error) {
-	ctx := context.TODO()
-
-	receipt, err := ec.client.TransactionReceipt(
-		ctx,
-		common.HexToHash(txHash),
-	)
-	if err != nil {
-		return nil, err
-	}
-
-	return big.NewInt(int64(receipt.GasUsed)), nil
-}
-
-func (ec *EthereumClient) TransactionMethod(txHash string) (string, error) {
-	ctx := context.TODO()
-
-	transaction, _, err := ec.client.TransactionByHash(
-		ctx,
-		common.HexToHash(txHash),
-	)
-	if err != nil {
-		return "", err
-	}
-
-	for _, lookupAbi := range ec.methodLookupAbiList {
-		method, err := lookupAbi.MethodById(transaction.Data()[:4])
-		if err != nil {
-			continue
-		}
-
-		return method.Name, nil
-	}
-
-	return "", nil
 }
 
 func (ec *EthereumClient) ActiveGroupsCount() (int64, error) {
@@ -342,85 +158,6 @@ func (ec *EthereumClient) AreRewardsWithdrawn(
 		nil,
 		common.HexToAddress(operator),
 		big.NewInt(groupIndex),
-	)
-}
-
-func (ec *EthereumClient) Keeps() (map[int64]string, map[int64]string, error) {
-	keepCount, err := ec.keepFactoryContract.GetKeepCount(nil)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	activeKeeps := make(map[int64]string)
-	nonActiveKeeps := make(map[int64]string)
-
-	for index := int64(0); index < keepCount.Int64(); index++ {
-		address, err := ec.keepFactoryContract.GetKeepAtIndex(
-			nil,
-			big.NewInt(index),
-		)
-		if err != nil {
-			return nil, nil, err
-		}
-
-		keep, err := ec.getKeep(address.Hex())
-		if err != nil {
-			return nil, nil, err
-		}
-
-		isActive, err := keep.IsActive(nil)
-		if err != nil {
-			return nil, nil, err
-		}
-
-		if isActive {
-			activeKeeps[index] = address.Hex()
-		} else {
-			nonActiveKeeps[index] = address.Hex()
-		}
-	}
-
-	return activeKeeps, nonActiveKeeps, nil
-}
-
-func (ec *EthereumClient) KeepMembers(
-	address string,
-) ([]string, error) {
-	keep, err := ec.getKeep(address)
-	if err != nil {
-		return nil, err
-	}
-
-	addresses, err := keep.GetMembers(nil)
-	if err != nil {
-		return nil, err
-	}
-
-	members := make([]string, 0)
-	for _, address := range addresses {
-		members = append(members, address.Hex())
-	}
-
-	return members, err
-}
-
-func (ec *EthereumClient) KeepMemberBalance(
-	keepAddress, memberAddress string,
-) (*big.Int, error) {
-	keep, err := ec.getKeep(keepAddress)
-	if err != nil {
-		return nil, err
-	}
-
-	return keep.GetMemberETHBalance(nil, common.HexToAddress(memberAddress))
-}
-
-func (ec *EthereumClient) getKeep(
-	address string,
-) (*ecdsaabi.BondedECDSAKeepCaller, error) {
-	return ecdsaabi.NewBondedECDSAKeepCaller(
-		common.HexToAddress(address),
-		ec.client,
 	)
 }
 

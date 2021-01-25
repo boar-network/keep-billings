@@ -173,23 +173,5 @@
                 </tr>
             {{ end }}
         </table>
-
-        <h2>Operator account billing (block {{ .FromBlock}} - block {{ .ToBlock }})</h2>
-        <table>
-            <tr>
-                <th class="block-number">Block number</th>
-                <th class="transaction-hash">Transaction hash</th>
-                <th class="transaction-fee">Transaction fee</th>
-                <th class="operation">Operation</th>
-            </tr>
-            {{ range .Transactions }}
-                <tr>
-                    <td>{{ .Block }}</td>
-                    <td>{{ .Hash }}</td>
-                    <td>{{ .Fee }} Gwei ({{ .Gas }} gas)</td>
-                    <td>{{ .Operation }}</td>
-                </tr>
-            {{ end }}
-        </table>
     </body>
 </html>

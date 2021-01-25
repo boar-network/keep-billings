@@ -30,16 +30,6 @@ var BillingsCommand = cli.Command{
 			Value: defaultConfigFile,
 			Usage: "Path to the TOML config file",
 		},
-		&cli.Int64Flag{
-			Name:     "from-block,f",
-			Required: true,
-			Usage:    "Billing data starting block",
-		},
-		&cli.Int64Flag{
-			Name:     "to-block,t",
-			Required: true,
-			Usage:    "Billing data ending block",
-		},
 	},
 }
 
@@ -50,12 +40,6 @@ type Customers struct {
 
 func GenerateBillings(c *cli.Context) error {
 	configPath := c.String("config")
-	fromBlock := c.Int64("from-block")
-	toBlock := c.Int64("to-block")
-
-	if fromBlock > toBlock {
-		return fmt.Errorf("fromBlock could not be smaller than toBlock")
-	}
 
 	logger.Infof("generating billings using config [%v]", configPath)
 
@@ -74,10 +58,8 @@ func GenerateBillings(c *cli.Context) error {
 	ethereumClient, err := chain.NewEthereumClient(
 		config.Ethereum.URL,
 		config.Ethereum.KeepToken,
-		config.Ethereum.TbtcToken,
 		config.Ethereum.TokenStaking,
 		config.Ethereum.KeepRandomBeaconOperator,
-		config.Ethereum.BondedECDSAKeepFactory,
 	)
 	if err != nil {
 		return err
@@ -92,35 +74,14 @@ func GenerateBillings(c *cli.Context) error {
 		return err
 	}
 
-	blocks := ethereumClient.GetBlocks(fromBlock, toBlock)
-
 	generateBillings(
 		customers.Beacon,
 		beaconReportGenerator.FetchCommonData,
 		func(customer *billing.Customer) (interface{}, error) {
-			return beaconReportGenerator.Generate(customer, blocks)
+			return beaconReportGenerator.Generate(customer)
 		},
 		beaconPdfExporter,
 		config.Billings.TargetDirectory+"/%v_Beacon_Billing.pdf",
-	)
-
-	ecdsaReportGenerator := billing.NewEcdsaReportGenerator(ethereumClient)
-
-	ecdsaPdfExporter, err := exporter.NewPdfExporter(
-		config.Billings.EcdsaTemplateFile,
-	)
-	if err != nil {
-		return err
-	}
-
-	generateBillings(
-		customers.Ecdsa,
-		ecdsaReportGenerator.FetchCommonData,
-		func(customer *billing.Customer) (interface{}, error) {
-			return ecdsaReportGenerator.Generate(customer, blocks)
-		},
-		ecdsaPdfExporter,
-		config.Billings.TargetDirectory+"/%v_ECDSA_Billing.pdf",
 	)
 
 	return nil
