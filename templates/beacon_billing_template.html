@@ -22,6 +22,7 @@
     
             .top-header {
                 text-align: center;
+                padding-bottom: 50px;
             }
     
             .block-number {
@@ -62,7 +63,7 @@
    
     <body>
         <header class="top-header">
-            <h1>Random Beacon Billing</h1>
+            <h1>Keep Random Beacon Staking Report</h1>
             <p>Generated with boar.network <a href="https://github.com/boar-network/keep-billings/">billing tool</a> &#128023;</p>
             <p>Thank you for trusting us with your KEEP &hearts;</p>
         </header>
@@ -78,44 +79,77 @@
                 <td>{{ .Stake }} KEEP</td>
             </tr>
             <tr>
-                <td>Operator account</td>
+                <td>Operator</td>
                 <td>{{ .Customer.Operator }}</td>
             </tr>
             <tr>
-                <td>Beneficiary account</td>
+                <td>Beneficiary</td>
                 <td>{{ .Customer.Beneficiary }}</td>
+            </tr>
+        </table>
+
+        <h2>Rewards</h2>
+        <table>
+            <tr>
+                <td>
+                    <div class="label-with-legend final-calculation">Staker ETH share</div>
+                    <div class="legend">RS&times;AR+BB</div>
+                </td>
+                <td class="final-calculation">{{ .CustomerEthShare}} ETH</td>
             </tr>
             <tr>
                 <td>
-                    <div class="label-with-legend">Staker net rewards share</div>
+                    <div class="label-with-legend final-calculation">Staker KEEP share</div>
+                    <div class="legend">RS&times;BK</div>
+                </td>
+                <td class="final-calculation">{{ .CustomerKeepShare}} KEEP</td>
+            </tr>
+            <tr>
+                <td>
+                    <div class="label-with-legend">Provider ETH share</div>
+                    <div class="legend">(1-RS)&times;AR</div>
+                </td>
+                <td class>{{ .ProviderEthShare}} ETH</td>
+            </tr>
+            <tr>
+                <td>
+                    <div class="label-with-legend">Provider KEEP share</div>
+                    <div class="legend">(1-RS)&times;BK</div>
+                </td>
+                <td class>{{ .ProviderKeepShare}} KEEP</td>
+            </tr>
+            <tr>
+                <td>
+                    <div class="label-with-legend">Staker rewards % share</div>
                     <div class="legend">RS</div>
                 </td>
                 <td>{{ .Customer.CustomerSharePercentage }} %</td>
             </tr>
-            <tr>
-                <td>
-                    <div class="label-with-legend">Initial operator account ETH balance</div>
-                    <div class="legend">IB</div>
-                </td>
-                <td>{{ .Customer.InitialOperatorEthBalance }} ETH</td>
-            </tr>
         </table>
+
 
         <h2>Balances</h2>
         <table>
             <tr>
                 <td>
-                    <div class="label-with-legend">Current operator account ETH balance</div>
-                    <div class="legend">OB</div>
+                    <div class="label-with-legend">Beneficiary KEEP balance</div>
+                    <div class="legend">BK</div>
                 </td>
-                <td>{{ .OperatorBalance }} ETH</td>
+                <td>{{ .BeneficiaryKeepBalance }} KEEP</td>
             </tr>
             <tr>
                 <td>
-                    <div class="label-with-legend">Current beneficiary account ETH balance</div>
+                    <div class="label-with-legend">Beneficiary ETH balance</div>
                     <div class="legend">BB</div>
                 </td>
                 <td>{{ .BeneficiaryEthBalance }} ETH</td>
+            </tr>
+            <tr>
+                <td>
+                    <div class="label-with-legend">Operator ETH balance</div>
+                    <div class="legend">OB</div>
+                </td>
+                <td>{{ .OperatorBalance }} ETH</td>
             </tr>
             <tr>
                 <td>
@@ -125,32 +159,18 @@
             </tr>
         </table>
 
-        <h2>Rewards</h2>
-        <table>
-            <tr>
-                <td>
-                    <div class="label-with-legend final-calculation">Staker ETH earned</div>
-                    <div class="legend">(BB+AR-(IB-OB))&times;RS</div>
-                </td>
-                <td class="final-calculation">{{ .CustomerEthEarned}} ETH</td>
-            </tr>
-            <tr>
-                <td>
-                    <div class="label-with-legend final-calculation">Provider ETH earned</div>
-                    <div class="legend">(BB+AR-(IB-OB))&times;(1-RS)</div>
-                </td>
-                <td class="final-calculation">{{ .ProviderEthEarned}} ETH</td>
-            </tr>
-        </table>
-
         <h2>Groups</h2>
         <table>
             <tr>
-                <td>The number of currently active beacon groups in the network</td>
+                <td>The total number of groups created in the network</td>
+                <td>{{ .TotalGroupsCount }}</td>
+            </tr>
+            <tr>
+                <td>The number of active beacon groups in the network</td>
                 <td>{{ .ActiveGroupsCount }}</td>
             </tr>
             <tr>
-                <td>The total number of your members in currently active groups</td>
+                <td>The total number of your members in active groups</td>
                 <td>{{ .ActiveGroupsMembersCount }}</td>
             </tr>
             <tr>
@@ -159,7 +179,7 @@
             </tr>
         </table>
 
-        <h2>Group members</h2>
+        <h2>Active Group Members</h2>
 
         <table>
             <tr>

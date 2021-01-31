@@ -1,112 +1,94 @@
 package billing
 
 import (
-	"testing"
 	"math/big"
+	"testing"
 )
 
 func TestCalculateBeaconRewards(t *testing.T) {
 	tests := map[string]struct {
-		initialOperatorEthBalance *big.Float
 		customerSharePercentage *big.Float
-		operatorEthBalance *big.Float
-		beneficiaryEthBalance *big.Float
-		beneficiaryKeepBalance *big.Float
-		accumulatedRewards *big.Float
+		beneficiaryEthBalance   *big.Float
+		beneficiaryKeepBalance  *big.Float
+		accumulatedRewards      *big.Float
 
-		expectedOperationalCosts *big.Float
-		expectedCustomerEthRewardShare *big.Float
-		expectedProviderEthRewardShare *big.Float
+		expectedCustomerEthRewardShare  *big.Float
+		expectedProviderEthRewardShare  *big.Float
 		expectedCustomerKeepRewardShare *big.Float
 		expectedProviderKeepRewardShare *big.Float
 	}{
-		"negative operational costs (something is wrong)": {
-			initialOperatorEthBalance: big.NewFloat(2.0),
-			customerSharePercentage: big.NewFloat(50.0),
-			operatorEthBalance: big.NewFloat(3.0),
-			beneficiaryEthBalance: big.NewFloat(1.0),
-			beneficiaryKeepBalance: big.NewFloat(1.0),
-			accumulatedRewards: big.NewFloat(1.0),
+		"all non-zero": {
+			customerSharePercentage: big.NewFloat(80.0),
+			beneficiaryEthBalance:   big.NewFloat(1.22),
+			beneficiaryKeepBalance:  big.NewFloat(1.924875),
+			accumulatedRewards:      big.NewFloat(0.285758),
 
-			expectedOperationalCosts: big.NewFloat(0),
-			expectedCustomerEthRewardShare: big.NewFloat(0),
-			expectedProviderEthRewardShare: big.NewFloat(0),
+			// 0.285758 * 0.8 + 1.22 = 1.4486064
+			expectedCustomerEthRewardShare: big.NewFloat(1.4486064),
+			// 0.285758 * (1.0 - 0.8) = 0.0571516
+			expectedProviderEthRewardShare: big.NewFloat(0.0571516),
+			// 1.924875 * 0.8 = 1.5399
+			expectedCustomerKeepRewardShare: big.NewFloat(1.5399),
+			// 1.924875 * (1.0 - 0.8) = 0.384975
+			expectedProviderKeepRewardShare: big.NewFloat(0.384975),
+		},
+		"zero KEEP rewards": {
+			customerSharePercentage: big.NewFloat(70.0),
+			beneficiaryEthBalance:   big.NewFloat(4.25),
+			beneficiaryKeepBalance:  big.NewFloat(0),
+			accumulatedRewards:      big.NewFloat(0.285758),
+
+			// 0.285758 * 0.7 + 4.25 = 4.4500306
+			expectedCustomerEthRewardShare: big.NewFloat(4.4500306),
+			// 0.285758 * (1.0 - 0.7) = 0.0857274
+			expectedProviderEthRewardShare: big.NewFloat(0.0857274),
+			// 0 * 0.7 = 0.0
 			expectedCustomerKeepRewardShare: big.NewFloat(0),
+			// 0 * (1.0 - 0.7) = 0.0
 			expectedProviderKeepRewardShare: big.NewFloat(0),
 		},
-		"no operational costs": {
-			initialOperatorEthBalance: big.NewFloat(2.0),
-			customerSharePercentage: big.NewFloat(50.0),
-			operatorEthBalance: big.NewFloat(2.0),
-			beneficiaryEthBalance: big.NewFloat(0.0),
-			beneficiaryKeepBalance: big.NewFloat(0.0),
-			accumulatedRewards: big.NewFloat(0.0),
+		"zero ETH beneficiary balance": {
+			customerSharePercentage: big.NewFloat(70.0),
+			beneficiaryEthBalance:   big.NewFloat(0),
+			beneficiaryKeepBalance:  big.NewFloat(1.5),
+			accumulatedRewards:      big.NewFloat(0.285758),
 
-			expectedOperationalCosts: big.NewFloat(0),
-			expectedCustomerEthRewardShare: big.NewFloat(0),
-			expectedProviderEthRewardShare: big.NewFloat(0),
-			expectedCustomerKeepRewardShare: big.NewFloat(0),
-			expectedProviderKeepRewardShare: big.NewFloat(0),
+			// 0.285758 * 0.7 + 0.0 = 0.2000306
+			expectedCustomerEthRewardShare: big.NewFloat(0.2000306),
+			// 0.285758 * (1.0 - 0.7) = 0.0857274
+			expectedProviderEthRewardShare: big.NewFloat(0.0857274),
+			// 1.5 * 0.7 = 1.05
+			expectedCustomerKeepRewardShare: big.NewFloat(1.05),
+			// 1.5 * (1.0 - 0.7) = 0.45
+			expectedProviderKeepRewardShare: big.NewFloat(0.45),
 		},
-		"operational cost greater than beneficiary balance": {
-			initialOperatorEthBalance: big.NewFloat(2.0),
-			customerSharePercentage: big.NewFloat(50.0),
-			operatorEthBalance: big.NewFloat(1.0),
-			beneficiaryEthBalance: big.NewFloat(0.0),
-			beneficiaryKeepBalance: big.NewFloat(0.0),
-			accumulatedRewards: big.NewFloat(0.0),
+		"zero accumulated ETH rewards": {
+			customerSharePercentage: big.NewFloat(80.0),
+			beneficiaryEthBalance:   big.NewFloat(1.22),
+			beneficiaryKeepBalance:  big.NewFloat(1.924875),
+			accumulatedRewards:      big.NewFloat(0),
 
-			expectedOperationalCosts: big.NewFloat(0),
-			expectedCustomerEthRewardShare: big.NewFloat(0),
+			// 0.0 * 0.8 + 1.22 = 1.22
+			expectedCustomerEthRewardShare: big.NewFloat(1.22),
+			// 0.0 * (1.0 - 0.8) = 0.0
 			expectedProviderEthRewardShare: big.NewFloat(0),
-			expectedCustomerKeepRewardShare: big.NewFloat(0),
-			expectedProviderKeepRewardShare: big.NewFloat(0),
-		},
-		"non-net-zero ETH rewards": {
-			initialOperatorEthBalance: big.NewFloat(2.0),
-			customerSharePercentage: big.NewFloat(50.0),
-			operatorEthBalance: big.NewFloat(1.924875),
-			beneficiaryEthBalance: big.NewFloat(0.0),
-			beneficiaryKeepBalance: big.NewFloat(0.0),
-			accumulatedRewards: big.NewFloat(0.285758),
-
-			// 2.0 - 1.924875 = 0.075125
-			expectedOperationalCosts: big.NewFloat(0.075125),
-			// 0.285758 - 0.075125 = 0.210633
-			// 0.5 * 0.210633 = 0.1053165
-			expectedCustomerEthRewardShare: big.NewFloat(0.1053165),
-			expectedProviderEthRewardShare: big.NewFloat(0.1053165),
-			expectedCustomerKeepRewardShare: big.NewFloat(0),
-			expectedProviderKeepRewardShare: big.NewFloat(0),	
-		},
-		"non-net-zero KEEP rewards": {
-			initialOperatorEthBalance: big.NewFloat(2.0),
-			customerSharePercentage: big.NewFloat(50.0),
-			operatorEthBalance: big.NewFloat(1.0),
-			beneficiaryEthBalance: big.NewFloat(0.0),
-			beneficiaryKeepBalance: big.NewFloat(9.0),
-			accumulatedRewards: big.NewFloat(0.0),
-
-			expectedOperationalCosts: big.NewFloat(0),
-			expectedCustomerEthRewardShare: big.NewFloat(0),
-			expectedProviderEthRewardShare: big.NewFloat(0),
-			expectedCustomerKeepRewardShare: big.NewFloat(4.5),
-			expectedProviderKeepRewardShare: big.NewFloat(4.5),
+			// 1.924875 * 0.8 = 1.5399
+			expectedCustomerKeepRewardShare: big.NewFloat(1.5399),
+			// 1.924875 * (1.0 - 0.8) = 0.384975
+			expectedProviderKeepRewardShare: big.NewFloat(0.384975),
 		},
 	}
 
 	for testName, test := range tests {
 		t.Run(testName, func(t *testing.T) {
-			operationalCosts, customerEthRewardsShare,
-			providerEthRewardShare, customerKeepRewardShare,
-			providerKeepRewardShare := calculateFinalBeaconRewards(
-				test.initialOperatorEthBalance,
-				test.customerSharePercentage,
-				test.operatorEthBalance,
-				test.beneficiaryEthBalance,
-				test.beneficiaryKeepBalance,
-				test.accumulatedRewards,
-			)
+			customerEthRewardsShare, providerEthRewardShare,
+				customerKeepRewardShare, providerKeepRewardShare :=
+				calculateFinalBeaconRewards(
+					test.customerSharePercentage,
+					test.beneficiaryEthBalance,
+					test.beneficiaryKeepBalance,
+					test.accumulatedRewards,
+				)
 
 			assertEqual := func(
 				expected *big.Float,
@@ -124,11 +106,6 @@ func TestCalculateBeaconRewards(t *testing.T) {
 				}
 			}
 
-			assertEqual(
-				test.expectedOperationalCosts,
-				operationalCosts,
-				"operational costs",
-			)
 			assertEqual(
 				test.expectedCustomerEthRewardShare,
 				customerEthRewardsShare,

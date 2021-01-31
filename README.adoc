@@ -1,6 +1,6 @@
-= Billing Reports
+= Keep Random Beacon Staker Reports
 
-This repository contains tooling for generating KEEP staker billing reports.
+This repository contains tooling for generating Keep Network Random Beacon staker reports.
 
 == Installation
 
@@ -45,7 +45,7 @@ input data. You can find an example of this file in:
 
 == Usage
 
-You can generate billing reports by doing:
+You can generate reports by doing:
 ```
 ./keep-billings generate
 ```

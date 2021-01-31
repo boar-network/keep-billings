@@ -9,11 +9,10 @@ import (
 var logger = log.Logger("billings-billing")
 
 type Customer struct {
-	Name                      string
-	Operator                  string
-	Beneficiary               string
-	CustomerSharePercentage   int
-	InitialOperatorEthBalance int
+	Name                    string
+	Operator                string
+	Beneficiary             string
+	CustomerSharePercentage int
 }
 
 type Report struct {
@@ -23,12 +22,12 @@ type Report struct {
 	OperatorBalance        string
 	BeneficiaryEthBalance  string
 	BeneficiaryKeepBalance string
-	BeneficiaryTbtcBalance string
 
 	AccumulatedRewards string
-	OperationalCosts   string
-	CustomerEthEarned  string
-	ProviderEthEarned  string
+	CustomerEthShare   string
+	ProviderEthShare   string
+	CustomerKeepShare  string
+	ProviderKeepShare  string
 }
 
 type DataSource interface {
