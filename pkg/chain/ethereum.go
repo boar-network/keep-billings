@@ -8,7 +8,6 @@ import (
 	"github.com/ipfs/go-log"
 
 	coreabi "github.com/boar-network/keep-billings/pkg/chain/gen/core/abi"
-	ecdsaabi "github.com/boar-network/keep-billings/pkg/chain/gen/ecdsa/abi"
 	erc20abi "github.com/boar-network/keep-billings/pkg/chain/gen/erc20/abi"
 	"github.com/ethereum/go-ethereum/common"
 	"github.com/ethereum/go-ethereum/ethclient"
@@ -20,7 +19,6 @@ var methodLookupAbiStrings = []string{
 	coreabi.TokenStakingABI,
 	coreabi.KeepRandomBeaconOperatorABI,
 	coreabi.KeepRandomBeaconServiceImplV1ABI,
-	ecdsaabi.KeepBondingABI,
 }
 
 type EthereumClient struct {
@@ -104,6 +102,15 @@ func (ec *EthereumClient) Stake(address string) (*big.Float, error) {
 
 	// it's not ETH but KEEP ERC-20 uses the same number of decimals
 	return WeiToEth(stake), nil
+}
+
+func (ec *EthereumClient) AllGroupsCount() (int64, error) {
+	result, err := ec.operatorContract.GetNumberOfCreatedGroups(nil)
+	if err != nil {
+		return 0, err
+	}
+
+	return result.Int64(), nil
 }
 
 func (ec *EthereumClient) ActiveGroupsCount() (int64, error) {
